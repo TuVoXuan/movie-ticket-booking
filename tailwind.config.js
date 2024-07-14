@@ -6,7 +6,14 @@ export default {
     "./resources/**/*.vue",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'dark-purple': '#5E5FEF'
+      },
+      boxShadow: {
+        'custom': 'rgba(0, 0, 0, 0.06) 0px 2px 4px 0px inset;'
+      }
+    },
   },
   plugins: [],
 }
