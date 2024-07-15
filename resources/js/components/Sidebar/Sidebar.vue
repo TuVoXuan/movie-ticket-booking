@@ -28,7 +28,7 @@ export default {
           title: 'Films',
         },
         {
-          href: 'artists',
+          href: 'artists.index',
           activeIcon: 'artist_solid',
           inactiveIcon: 'artist_outline',
           title: 'Artist',

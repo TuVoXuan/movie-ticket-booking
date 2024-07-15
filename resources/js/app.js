@@ -13,16 +13,13 @@ import {ZiggyVue} from '../../vendor/tightenco/ziggy'
 
 createInertiaApp({
   resolve: name => {
-    const pages = import.meta.glob('./pages/**/*.vue', { eager: true })
-    let page = pages[`./pages/${name}.vue`]
+    const pages = import.meta.glob('./Pages/**/*.vue', { eager: true })
+    let page = pages[`./Pages/${name}.vue`]
     page.default.layout = page.default.layout || PageLayout;
     return page;
   },
   setup({ el, App, props, plugin }) {
     createApp({ render: () => h(App, props) })
-      .component('Icon', Icon)
-      .component('Link', Link)
-      .component('Box', Box)
       .use(plugin)
       .use(ZiggyVue)
       .use(PrimeVue, {
@@ -30,6 +27,9 @@ createInertiaApp({
           preset: Aura
         }
       })
+      .component('Icon', Icon)
+      .component('Link', Link)
+      .component('Box', Box)
       .mount(el)
   },
 })

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\FilmController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -22,9 +23,10 @@ Route::get('/', function () {
 Route::get('/films', function () {
     return Inertia::render('FilmsPage');
 })->name('films');
-Route::get('/artists', function () {
-    return Inertia::render('ArtistsPage');
-})->name('artists');
+
+Route::get('/artists', [ArtistController::class, 'index'])->name('artists.index');
+Route::get('/artists/create', [ArtistController::class, 'create'])->name('artists.create');
+
 Route::get('/genres', function () {
     return Inertia::render('GenresPage');
 })->name('genres');

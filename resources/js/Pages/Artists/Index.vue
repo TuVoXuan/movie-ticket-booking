@@ -6,7 +6,7 @@
 
 <script>
 export default {
-  name: "ArtistsPage"
+  name: "Index"
 }
 </script>
 
