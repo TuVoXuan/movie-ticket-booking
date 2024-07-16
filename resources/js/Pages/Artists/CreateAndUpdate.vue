@@ -1,6 +1,6 @@
 <template>
   <Box>
-    <h1 class="text-2xl font-medium text-center mb-4">Create New Artist</h1>
+    <h1 class="text-2xl font-medium text-center mb-4">{{ artist ? 'Update' : 'Create' }} New Artist</h1>
     <form @submit.prevent="onSubmit" :validation-schema="schema" class="grid grid-cols-2 gap-3">
       <div>
         <label class="block mb-2" for="name">Name</label>
@@ -9,7 +9,7 @@
       </div>
       <div>
         <label class="block mb-2" for="birthday">birthday</label>
-        <DatePicker class="w-full" name="birthday" v-model="birthday" />
+        <DatePicker class="w-full" name="birthday" v-model="birthday" dateFormat="dd/mm/yy" />
         <small id="name-help" class="text-red-500">{{ errors.birthday }}</small>
       </div>
       <div class="col-span-2">
@@ -18,7 +18,7 @@
         <small id="name-help" class="text-red-500">{{ errors.biography }}</small>
       </div>
 
-      <Button class="col-start-1 w-fit" type="submit">Create</Button>
+      <Button class="col-start-1 w-fit" type="submit">{{ artist ? 'Update' : 'Create' }}</Button>
     </form>
   </Box>
 </template>
@@ -31,6 +31,10 @@ import Button from 'primevue/button';
 import * as yup from 'yup'
 import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
+import { toRefs } from 'vue'
+
+const props = defineProps(['artist']);
+const { artist } = toRefs(props);
 
 const schema = yup.object().shape({
   name: yup.string().required().min(3),
@@ -39,7 +43,12 @@ const schema = yup.object().shape({
 })
 
 const { defineField, handleSubmit, resetForm, errors } = useForm({
-  validationSchema: schema
+  validationSchema: schema,
+  initialValues: {
+    name: artist.value?.name,
+    biography: artist.value?.biography,
+    birthday: artist.value?.birthday ? new Date(artist.value.birthday) : null
+  }
 })
 
 const [name] = defineField('name');
@@ -47,6 +56,10 @@ const [biography] = defineField('biography');
 const [birthday] = defineField('birthday');
 
 const onSubmit = handleSubmit((values) => {
-  router.post(route('artists.store'), values);
+  if (artist.value) {
+    router.put(route('artists.update', artist.value.id), values);
+  } else {
+    router.post(route('artists.store'), values);
+  }
 })
 </script>

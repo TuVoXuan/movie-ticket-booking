@@ -27,7 +27,8 @@ Route::get('/films', function () {
 // Route::get('/artists', [ArtistController::class, 'index'])->name('artists.index');
 // Route::get('/artists/create', [ArtistController::class, 'create'])->name('artists.create');
 
-Route::resource('artists', ArtistController::class)->only(['index', 'create', 'store']);
+Route::resource('artists', ArtistController::class)
+    ->only(['index', 'create', 'store', 'edit', 'destroy', 'update']);
 
 Route::get('/genres', function () {
     return Inertia::render('GenresPage');

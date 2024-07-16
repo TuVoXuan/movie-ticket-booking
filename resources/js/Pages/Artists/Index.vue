@@ -38,9 +38,12 @@
         <template #body="slotProps">
           <div class="flex items-center gap-x-3">
             <button class="h-8 w-8 text-blue-400 bg-white hover:bg-blue-100 transition-colors ease-linear rounded-full">
+              <Link :href="route('artists.edit', slotProps.data.id)">
               <i class="pi pi-pencil"></i>
+              </Link>
             </button>
-            <button class="h-8 w-8 text-red-400 bg-white hover:bg-red-100 transition-colors ease-linear rounded-full">
+            <button @click="confirmDelete(slotProps.data.id)"
+              class="h-8 w-8 text-red-400 bg-white hover:bg-red-100 transition-colors ease-linear rounded-full">
               <i class="pi pi-trash"></i>
             </button>
           </div>
@@ -112,6 +115,25 @@ export default {
         ...query,
         search: searchText
       });
+    },
+    confirmDelete(id) {
+      this.$confirm.require({
+        message: 'Are you sure you want to delete it?',
+        header: 'Warning',
+        icon: 'pi pi-info-circle',
+        rejectProps: {
+          label: "Cancel",
+          severity: 'secondary',
+          outlined: true
+        },
+        acceptProps: {
+          label: 'Delete',
+          severity: 'danger'
+        },
+        accept: () => {
+          router.delete(route('artists.destroy', id));
+        }
+      })
     }
   },
   mounted() {

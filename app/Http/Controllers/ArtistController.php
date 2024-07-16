@@ -51,7 +51,7 @@ class ArtistController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Artists/Create');
+        return Inertia::render('Artists/CreateAndUpdate');
     }
 
     /**
@@ -95,17 +95,42 @@ class ArtistController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Artist $artist)
     {
-        //
+        return Inertia::render('Artists/CreateAndUpdate', ['artist' => $artist]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(string $id, Request $request)
     {
-        //
+        try {
+            $artist = Artist::find($id);
+            if (!$artist) {
+                return back()->with('error', 'Artist not found.');
+            }
+
+            $validated = Validator::make($request->all(), [
+                'name' => 'required|string|min:3',
+                'biography' => 'required|string',
+                'birthday' => 'required|date'
+            ]);
+
+            if ($validated->fails()) {
+                return back()->withErrors($validated->errors());
+            }
+            $body = $request->all();
+            $artist->update([
+                'name' => $body['name'],
+                'biography' => $body['biography'],
+                'birthday' => Carbon::parse($body['birthday'])
+            ]);
+            return redirect()->route('artists.index')->with('success', 'Update artist successfully.');
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return redirect()->route('artists.index')->with('error', 'An error occurred when updating artist.');
+        }
     }
 
     /**
@@ -113,6 +138,15 @@ class ArtistController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $artist = Artist::find($id);
+            if (!$artist) {
+                return redirect()->route('artists.index')->with('error', 'Artist not found.');
+            }
+            $artist->delete();
+            return redirect()->route('artists.index')->with('success', 'Delete artists successfully.');
+        } catch (\Throwable $th) {
+            return redirect()->route('artists.index')->with('error', 'An error occurred when delete artist.');
+        }
     }
 }

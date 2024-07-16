@@ -20,6 +20,7 @@
     </div>
   </div>
   <Toast />
+  <ConfirmDialog></ConfirmDialog>
 </template>
 
 <script>
@@ -27,13 +28,15 @@ import Sidebar from '../components/Sidebar/Sidebar.vue'
 import Topbar from '../components/Topbar/Topbar.vue';
 import { router } from '@inertiajs/vue3';
 import Toast from 'primevue/toast';
+import ConfirmDialog from 'primevue/confirmdialog';
 
 export default {
   name: "PageLayout",
   components: {
     Sidebar,
     Topbar,
-    Toast
+    Toast,
+    ConfirmDialog
   },
   mounted() {
     router.on('finish', (event) => {
