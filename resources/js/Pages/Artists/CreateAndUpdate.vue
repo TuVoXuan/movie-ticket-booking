@@ -4,17 +4,19 @@
     <form @submit.prevent="onSubmit" :validation-schema="schema" class="grid grid-cols-2 gap-3">
       <div>
         <label class="block mb-2" for="name">Name</label>
-        <InputText class="w-full" name="name" v-model="name" />
+        <InputText class="w-full" name="name" placeholder="Enter name" v-model="name" :invalid="errors.name" />
         <small id="name-help" class="text-red-500">{{ errors.name }}</small>
       </div>
       <div>
-        <label class="block mb-2" for="birthday">birthday</label>
-        <DatePicker class="w-full" name="birthday" v-model="birthday" dateFormat="dd/mm/yy" />
+        <label class="block mb-2" for="birthday">Birthday</label>
+        <DatePicker name="birthday" v-model="birthday" placeholder="Select date" dateFormat="dd/mm/yy" showIcon fluid
+          :invalid="errors.birthday" />
         <small id="name-help" class="text-red-500">{{ errors.birthday }}</small>
       </div>
       <div class="col-span-2">
         <label class="block mb-2" for="biography">Biography</label>
-        <Textarea class="w-full" name="biography" rows="8" v-model="biography" />
+        <Textarea class="w-full" name="biography" placeholder="Enter biography" rows="8" v-model="biography"
+          :invalid="errors.biography" />
         <small id="name-help" class="text-red-500">{{ errors.biography }}</small>
       </div>
 
@@ -31,7 +33,7 @@ import Button from 'primevue/button';
 import * as yup from 'yup'
 import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
-import { toRefs } from 'vue'
+import { toRefs, ref } from 'vue'
 
 const props = defineProps(['artist']);
 const { artist } = toRefs(props);
@@ -62,4 +64,6 @@ const onSubmit = handleSubmit((values) => {
     router.post(route('artists.store'), values);
   }
 })
+
+const date = ref()
 </script>
