@@ -6,14 +6,32 @@
       </Button>
     </div>
 
-    <DataTable v-model:selection="selectedRow" dataKey="id" :value="artists.data" lazy paginator :first="first"
-      :totalRecords="artists.total" :rows="rows" :rowsPerPageOptions="[5, 10, 20, 30]" @page="onChangePage"
-      @update:rows="onChangeRows">
+    <DataTable v-model:selection="selectedRow" dataKey="id" :value="artists.data" removableSort lazy paginator
+      :first="first" :totalRecords="artists.total" :rows="rows" :sortField="sortField" :sortOrder="sortOrder"
+      :rowsPerPageOptions="[5, 10, 20, 30]" @page="onChangePage" @sort="onSort"
+      paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} artists">
+      <template #header>
+        <div class="flex flex-wrap gap-2 items-center justify-between">
+          <h4 class="text-xl font-medium">Manage Artists</h4>
+
+          <IconField>
+            <InputIcon class="pi pi-search" />
+            <InputText :value="search" @input="onSearchChange" class="w-full" placeholder="Search" />
+          </IconField>
+        </div>
+      </template>
+
       <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-      <Column field="name" header="Name" />
-      <Column field="birthday" header="Birthday">
+      <Column field="name" header="Name" sortable></Column>
+      <Column field="birthday" header="Birthday" sortable>
         <template #body="slotProps">
           {{ getDate(slotProps.data.birthday, 'DD-MM-YYYY') }}
+        </template>
+      </Column>
+      <Column field="created_at" header="Created At" sortable>
+        <template #body="slotProps">
+          {{ getDate(slotProps.data.created_at, 'DD-MM-YYYY') }}
         </template>
       </Column>
       <Column header="Actions">
@@ -29,9 +47,6 @@
         </template>
       </Column>
     </DataTable>
-    <!-- <Paginator :rows="rows" v-model="first" :totalRecords="artists.total" :rowsPerPageOptions="[10, 20, 30]"
-      @page="changePage" @update:rows="changeRows" @update:first="changeFirst">
-    </Paginator> -->
   </Box>
 </template>
 
@@ -39,10 +54,12 @@
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Paginator from 'primevue/paginator';
-import { getDate } from '../../utils/Date';
 import { router } from '@inertiajs/vue3';
-import { getQuery } from '../../utils/Query';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
+import InputText from 'primevue/inputtext';
+import { getDate, getQuery, convertSortOrder } from '../../utils/utils';
+import { debounce } from 'lodash';
 
 export default {
   name: "ArtistsPage",
@@ -51,14 +68,19 @@ export default {
     DataTable,
     Column,
     Button,
-    Paginator
+    InputIcon,
+    IconField,
+    InputText
   },
   data() {
     return {
+      search: '',
       rows: 10,
       selectedRow: null,
       first: 0,
       loading: false,
+      sortField: null,
+      sortOrder: null,
     }
   },
   methods: {
@@ -71,13 +93,34 @@ export default {
         page_size: event.rows
       })
     },
-    onChangeRows(value) {
-      this.rows = value;
+    onSort(event) {
+      const query = getQuery();
+      router.get(route('artists.index'), {
+        ...query,
+        page: 1,
+        sort: event.sortField,
+        sort_order: convertSortOrder(event.sortOrder)
+      });
+    },
+    onSearchChange: debounce(function (event) {
+      this.handleSearch(event.target.value);
+    }, 1000),
+    handleSearch(searchText) {
+      this.search = searchText;
+      const query = getQuery();
+      router.get(route('artists.index'), {
+        ...query,
+        search: searchText
+      });
     }
   },
   mounted() {
+    const query = getQuery();
     this.first = (this.artists.current_page - 1) * this.artists.per_page;
     this.rows = this.artists.per_page;
+    this.sortField = query.sort || null;
+    this.sortOrder = convertSortOrder(query.sort_order);
+    this.search = query.search || null;
   },
 }
 

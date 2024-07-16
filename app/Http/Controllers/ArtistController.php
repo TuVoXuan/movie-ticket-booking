@@ -23,20 +23,20 @@ class ArtistController extends Controller
             $pageSize = $request->query('page_size', 10);
             $page = $request->query('page', 0);
             $sort = $request->query('sort');
-            $sort_direction = $request->query('sort_direction', 'asc');
+            $sort_order = $request->query('sort_order', 'asc');
 
             if ($search) {
                 $query->where('name', $search);
             }
 
             if ($sort) {
-                $query->orderBy($sort, $sort_direction);
+                $query->orderBy($sort, $sort_order);
             }
 
             $artists = Artist::when($search, function ($query, $search) {
                 $query->where('name', 'LIKE', '%' . $search . '%');
-            })->when($sort, function ($query, $sort) use ($sort_direction) {
-                $query->orderBy($sort, $sort_direction);
+            })->when($sort, function ($query, $sort) use ($sort_order) {
+                $query->orderBy($sort, $sort_order);
             })->paginate($pageSize);
 
             return Inertia::render('Artists/Index', ['artists' => $artists]);
