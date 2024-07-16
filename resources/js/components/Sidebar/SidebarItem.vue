@@ -41,7 +41,8 @@ export default {
   },
   mounted() {
     router.on('finish', (event) => {
-      this.isActive = route().current(this.href)
+      const hrefSplit = this.href.split('.');
+      this.isActive = route().current(hrefSplit[0] + '.*');
     })
   },
 }

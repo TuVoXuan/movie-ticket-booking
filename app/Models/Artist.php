@@ -9,6 +9,8 @@ class Artist extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['name', 'biography', 'birthday'];
+
     public function films()
     {
         return $this->belongsToMany(Film::class, 'film_artist');

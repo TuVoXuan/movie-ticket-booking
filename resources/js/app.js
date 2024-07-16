@@ -9,7 +9,8 @@ import PageLayout from './layouts/PageLayout.vue';
 import Icon from './components/icons/Icon.vue';
 import Box from './components/Box/Box.vue';
 import {ZiggyVue} from '../../vendor/tightenco/ziggy'
-
+import ToastService from 'primevue/toastservice';
+import ConfirmationService from 'primevue/confirmationservice';
 
 createInertiaApp({
   resolve: name => {
@@ -27,6 +28,8 @@ createInertiaApp({
           preset: Aura
         }
       })
+      .use(ToastService)
+      .use(ConfirmationService)
       .component('Icon', Icon)
       .component('Link', Link)
       .component('Box', Box)
