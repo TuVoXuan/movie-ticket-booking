@@ -17,21 +17,10 @@ class ArtistController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Artist::query();
-
             $search = $request->query('search');
             $pageSize = $request->query('page_size', 10);
-            $page = $request->query('page', 0);
             $sort = $request->query('sort');
             $sort_order = $request->query('sort_order', 'asc');
-
-            if ($search) {
-                $query->where('name', $search);
-            }
-
-            if ($sort) {
-                $query->orderBy($sort, $sort_order);
-            }
 
             $artists = Artist::when($search, function ($query, $search) {
                 $query->where('name', 'LIKE', '%' . $search . '%');

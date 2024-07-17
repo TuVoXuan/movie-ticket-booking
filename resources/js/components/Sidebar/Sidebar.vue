@@ -34,7 +34,7 @@ export default {
           title: 'Artist',
         },
         {
-          href: 'genres',
+          href: 'genres.index',
           activeIcon: 'category_solid',
           inactiveIcon: 'category_outline',
           title: 'Genres',
