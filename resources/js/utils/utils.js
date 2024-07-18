@@ -12,14 +12,14 @@ export function getQuery(){
 
 export function convertSortOrder(sortOrder){
   switch (sortOrder) {
-    case 1:
+    case 'ascend':
       return 'asc';
-    case -1:
+    case 'descend':
       return 'desc';
     case "asc":
-      return 1;
+      return 'ascend';
     case 'desc':
-      return -1;
+      return 'descend';
     default:
       return null;
   }

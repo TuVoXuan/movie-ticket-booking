@@ -53,41 +53,23 @@ export default {
     Input
   },
   data() {
-    const columns = [
-      {
-        title: 'Name',
-        dataIndex: 'name',
-        key: 'name',
-      },
-      {
-        title: 'Birthday',
-        dataIndex: 'birthday',
-        key: 'birthday'
-      },
-      {
-        title: 'Created At',
-        dataIndex: 'created_at',
-        key: 'created_at',
-      },
-      {
-        title: 'Action',
-        key: 'action',
-      },
-    ]
     return {
-      columns,
-      search: null
+      search: null,
+      sortInfo: {}
     }
   },
   methods: {
     h,
     getDate,
     handleTableChange(pagination, filters, sorter) {
+      this.sortInfo = sorter;
       const query = getQuery();
       router.get(route('artists.index'), {
         ...query,
         page: pagination.current,
-        page_size: pagination.pageSize
+        page_size: pagination.pageSize,
+        sort: sorter.field,
+        sort_order: convertSortOrder(sorter.order)
       })
     },
     onSearchChange: debounce(function (event) {
@@ -105,6 +87,37 @@ export default {
     },
   },
   computed: {
+    columns() {
+      return [
+        {
+          title: 'Name',
+          dataIndex: 'name',
+          key: 'name',
+          sorter: true,
+          sortOrder: this.sortInfo?.columnKey === 'name' && this.sortInfo.order
+        },
+        {
+          title: 'Birthday',
+          dataIndex: 'birthday',
+          key: 'birthday',
+          align: 'center',
+          sorter: true,
+          sortOrder: this.sortInfo?.columnKey === 'birthday' && this.sortInfo.order
+        },
+        {
+          title: 'Created At',
+          dataIndex: 'created_at',
+          key: 'created_at',
+          align: 'center',
+          sorter: true,
+          sortOrder: this.sortInfo?.columnKey === 'created_at' && this.sortInfo.order
+        },
+        {
+          title: 'Action',
+          key: 'action',
+        },
+      ]
+    },
     pagination() {
       return {
         total: this.artists.total,
@@ -121,6 +134,10 @@ export default {
     this.search = query.search || '';
     this.pagination.current = query.page ? parseInt(query.page) : 0;
     this.pagination.pageSize = query.page_size ? parseInt(query.page_size) : 0
+    if (query.sort) {
+      this.sortInfo.columnKey = query.sort;
+      this.sortInfo.order = convertSortOrder(query.sort_order);
+    }
   },
 }
 
