@@ -6,7 +6,6 @@
           <template #prefix>
             <Icon name="search_outline" class="h-5 w-5" />
           </template>
-
         </a-input>
       </div>
       <a-button type="primary">

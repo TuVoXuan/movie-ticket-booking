@@ -1,83 +1,80 @@
 <template>
   <Box>
-    <div class="flex justify-end">
-      <Button @click="showForm = true">Add New Genre</Button>
+    <div class="flex justify-between mb-4">
+      <div>
+        <a-input v-model:value="search" placeholder="Search ..." @input="onSearchChange">
+          <template #prefix>
+            <Icon name="search_outline" class="h-5 w-5" />
+          </template>
+        </a-input>
+      </div>
+
+      <a-button type="primary" @click="openModal = true">Add New Genre</a-button>
     </div>
 
-    <DataTable v-model:selection="selectedRow" :value="genres" rowHover>
-      <template #header>
-        <div class="flex flex-wrap gap-2 items-center justify-between">
-          <h4 class="text-xl font-medium">Manage Genres</h4>
-
-          <IconField>
-            <InputIcon class="pi pi-search" />
-            <InputText :value="search" @input="onSearchChange" class="w-full" placeholder="Search" />
-          </IconField>
+    <a-table :data-source="genres" :columns="columns">
+      <template #bodyCell="{ column, record }">
+        <div v-if="column.key === 'created_at'">
+          {{ dayjs(record.created_at).format('DD/MM/YYYY') }}
+        </div>
+        <div v-if="column.key === 'action'" class="flex items-center gap-x-3">
+          <a-button shape="circle" class="relative hover:!border-blue-200 hover:bg-blue-50"
+            @click="handleClickEdit(record.id)">
+            <Icon name="pen_outline"
+              class="absolute text-blue-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
+          </a-button>
+          <a-button shape="circle" class="relative hover:!border-red-200 hover:bg-red-50"
+            @click="showConfirmDelete(record.id)">
+            <Icon name="trash_outline"
+              class="absolute text-red-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
+          </a-button>
         </div>
       </template>
-
-      <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-      <Column field="name" header="Name"></Column>
-      <Column field="created_at" header="Created At">
-        <template #body="slotProps">
-          {{ getDate(slotProps.data.created_at, 'DD-MM-YYYY') }}
-        </template>
-      </Column>
-      <Column header="Actions">
-        <template #body="slotProps">
-          <div class="flex items-center gap-x-3">
-            <button class="h-8 w-8 text-blue-400 bg-white hover:bg-blue-100 transition-colors ease-linear rounded-full"
-              @click="openEditModal(slotProps.data.id)">
-              <i class="pi pi-pencil"></i>
-            </button>
-            <button @click="confirmDelete(slotProps.data.id)"
-              class="h-8 w-8 text-red-400 bg-white hover:bg-red-100 transition-colors ease-linear rounded-full">
-              <i class="pi pi-trash"></i>
-            </button>
-          </div>
-        </template>
-      </Column>
-    </DataTable>
-
-    <Dialog v-model:visible="showForm" modal :header="`${selectedGenre ? 'Edit Genre' : 'Add New Genre'}`"
-      :style="{ width: '25rem' }">
-      <form @submit="onSubmit">
-        <div class="flex flex-col gap-4 mb-4">
-          <label for="name" class="font-semibold w-24">Name</label>
-          <InputText v-model="name" :invalid="!!errors.name" class="flex-auto" autocomplete="off" />
-          <small class="text-red-500">{{ errors.name }}</small>
-        </div>
-        <div class="flex justify-end gap-2">
-          <Button type="button" label="Cancel" severity="secondary" @click="showForm = false"></Button>
-          <Button type="submit" label="Save"></Button>
-        </div>
-      </form>
-    </Dialog>
+    </a-table>
   </Box>
+  <a-modal v-model:open="openModal" :title="selectedGenre ? 'Update Genre' : 'Create Genre'"
+    :ok-button-props="{ form: 'genreForm', htmlType: 'submit' }">
+    <a-form id="genreForm" layout="vertical" @submit="onSubmit">
+      <a-form-item class="mb-0" label="Name" v-bind="nameProps">
+        <a-input v-model:value="name" />
+      </a-form-item>
+    </a-form>
+  </a-modal>
 </template>
 
 <script setup>
-import Button from 'primevue/button';
-import Dialog from 'primevue/dialog';
-import InputText from 'primevue/inputtext';
+import { Table, Button, Modal, Form, FormItem } from 'ant-design-vue';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
-import { ref, onMounted, defineProps, toRefs } from 'vue'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { ref, onMounted, defineProps, toRefs, createVNode } from 'vue'
 import { router, usePage } from '@inertiajs/vue3';
-import { getDate, getQuery } from '../../utils/utils'
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
+import { getQuery } from '../../utils/utils'
 import { debounce } from 'lodash';
-import { useConfirm } from "primevue/useconfirm";
+import dayjs from 'dayjs';
+
+const columns = ref([
+  {
+    title: 'Name',
+    dataIndex: 'name',
+    key: 'name',
+  },
+  {
+    title: 'Created At',
+    dataIndex: 'created_at',
+    key: 'created_at',
+    align: 'center'
+  },
+  {
+    title: 'Action',
+    key: 'action'
+  }
+])
 
 const props = defineProps(['genres'])
 const { genres } = toRefs(props);
-
-const showForm = ref(false);
-const selectedRow = ref();
 const search = ref();
+const openModal = ref(false);
 const selectedGenre = ref();
 
 const schema = yup.object().shape({
@@ -88,7 +85,15 @@ const { defineField, handleSubmit, resetForm, errors } = useForm({
   validationSchema: schema,
 })
 
-const [name] = defineField('name');
+const antConfig = (state) => ({
+  props: {
+    hasFeedback: !!state.errors[0],
+    help: state.errors[0],
+    validateStatus: state.errors[0] ? 'error' : undefined,
+  },
+});
+
+const [name, nameProps] = defineField('name', antConfig);
 
 const onSubmit = handleSubmit((values) => {
   if (selectedGenre.value) {
@@ -104,36 +109,26 @@ const onSearchChange = debounce((event) => {
   });
 }, 1000)
 
-const confirm = useConfirm();
-
-const confirmDelete = (id) => {
-  confirm.require({
-    message: 'Are you sure you want to delete it?',
-    header: 'Warning',
-    icon: 'pi pi-info-circle',
-    rejectProps: {
-      label: "Cancel",
-      severity: 'secondary',
-      outlined: true
-    },
-    acceptProps: {
-      label: 'Delete',
-      severity: 'danger'
-    },
-    accept: () => {
+const showConfirmDelete = (id) => {
+  Modal.confirm({
+    centered: true,
+    title: "Do you want to delete this item?",
+    icon: createVNode(ExclamationCircleOutlined),
+    content: createVNode('div', { class: 'text-red-500' }, "This action can't be undo."),
+    onOk() {
       router.delete(route('genres.destroy', id));
     }
   })
 }
 
-const openEditModal = (id) => {
+const handleClickEdit = (id) => {
   selectedGenre.value = genres.value.find((item) => item.id === id);
   resetForm({
     values: {
       name: selectedGenre.value?.name
     }
   })
-  showForm.value = true;
+  openModal.value = true;
 }
 
 onMounted(() => {
@@ -143,7 +138,8 @@ onMounted(() => {
   router.on('finish', (event) => {
     const page = usePage();
     if (page.props.success) {
-      showForm.value = false;
+      openModal.value = false;
+      resetForm();
     }
   })
 })
