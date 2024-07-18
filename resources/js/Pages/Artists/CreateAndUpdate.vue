@@ -1,35 +1,24 @@
 <template>
   <Box>
     <h1 class="text-2xl font-medium text-center mb-4">{{ artist ? 'Update' : 'Create' }} New Artist</h1>
-    <form @submit.prevent="onSubmit" :validation-schema="schema" class="grid grid-cols-2 gap-3">
-      <div>
-        <label class="block mb-2" for="name">Name</label>
-        <InputText class="w-full" name="name" placeholder="Enter name" v-model="name" :invalid="errors.name" />
-        <small id="name-help" class="text-red-500">{{ errors.name }}</small>
-      </div>
-      <div>
-        <label class="block mb-2" for="birthday">Birthday</label>
-        <DatePicker name="birthday" v-model="birthday" placeholder="Select date" dateFormat="dd/mm/yy" showIcon fluid
-          :invalid="errors.birthday" />
-        <small id="name-help" class="text-red-500">{{ errors.birthday }}</small>
-      </div>
-      <div class="col-span-2">
-        <label class="block mb-2" for="biography">Biography</label>
-        <Textarea class="w-full" name="biography" placeholder="Enter biography" rows="8" v-model="biography"
-          :invalid="errors.biography" />
-        <small id="name-help" class="text-red-500">{{ errors.biography }}</small>
-      </div>
+    <a-form layout="vertical" @submit.prevent="onSubmit" :validation-schema="schema" class="grid grid-cols-2 gap-3">
+      <a-form-item class="mb-0" label="Name" v-bind="nameProps">
+        <a-input v-model:value="name" />
+      </a-form-item>
+      <a-form-item class="mb-0" label="Birthday" v-bind="birthdayProps">
+        <a-date-picker class="w-full" v-model:value="birthday" />
+      </a-form-item>
+      <a-form-item class="col-span-2 mb-0" label="Biography" v-bind="biographyProps">
+        <a-textarea v-model:value="biography" :rows="10" />
+      </a-form-item>
 
-      <Button class="col-start-1 w-fit" type="submit">{{ artist ? 'Update' : 'Create' }}</Button>
-    </form>
+      <a-button class="col-start-1 w-fit" type="primary" htmlType="submit">{{ artist ? 'Update' : 'Create' }}</a-button>
+    </a-form>
   </Box>
 </template>
 
 <script setup>
-import InputText from 'primevue/inputtext';
-import Textarea from 'primevue/textarea';
-import DatePicker from 'primevue/datepicker';
-import Button from 'primevue/button';
+import { Input, Button, DatePicker, Textarea, Form, FormItem } from 'ant-design-vue';
 import * as yup from 'yup'
 import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
@@ -53,9 +42,17 @@ const { defineField, handleSubmit, resetForm, errors } = useForm({
   }
 })
 
-const [name] = defineField('name');
-const [biography] = defineField('biography');
-const [birthday] = defineField('birthday');
+const antConfig = (state) => ({
+  props: {
+    hasFeedback: !!state.errors[0],
+    help: state.errors[0],
+    validateStatus: state.errors[0] ? 'error' : undefined,
+  },
+});
+
+const [name, nameProps] = defineField('name', antConfig);
+const [biography, biographyProps] = defineField('biography', antConfig);
+const [birthday, birthdayProps] = defineField('birthday', antConfig);
 
 const onSubmit = handleSubmit((values) => {
   if (artist.value) {
@@ -64,6 +61,4 @@ const onSubmit = handleSubmit((values) => {
     router.post(route('artists.store'), values);
   }
 })
-
-const date = ref()
 </script>

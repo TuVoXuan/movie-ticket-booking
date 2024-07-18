@@ -19,32 +19,33 @@
 
     </div>
   </div>
-  <Toast />
-  <ConfirmDialog></ConfirmDialog>
 </template>
 
 <script>
 import Sidebar from '../components/Sidebar/Sidebar.vue'
 import Topbar from '../components/Topbar/Topbar.vue';
 import { router } from '@inertiajs/vue3';
-import Toast from 'primevue/toast';
-import ConfirmDialog from 'primevue/confirmdialog';
+import { notification } from 'ant-design-vue';
 
 export default {
   name: "PageLayout",
   components: {
-    Sidebar,
     Topbar,
-    Toast,
-    ConfirmDialog
+    Sidebar
   },
   mounted() {
     router.on('finish', (event) => {
       if (this.$page.props?.success) {
-        this.$toast.add({ severity: "success", summary: "Success", detail: this.$page.props.success, life: 3000 })
+        notification['success']({
+          message: 'Success',
+          description: this.$page.props.success,
+        });
       }
       if (this.$page.props?.error) {
-        this.$toast.add({ severity: "error", summary: "Error", detail: this.$page.props.error, life: 3000 })
+        notification['error']({
+          message: 'Error',
+          description: this.$page.props.error,
+        });
       }
     })
   },

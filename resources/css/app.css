@@ -7,3 +7,10 @@
     font-optical-sizing: auto;
     font-style: normal;
 }
+
+.ant-input,
+.ant-picker,
+.ant-input-affix-wrapper {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}

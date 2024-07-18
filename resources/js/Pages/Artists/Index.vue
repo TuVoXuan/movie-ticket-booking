@@ -27,7 +27,8 @@
             <Icon name="pen_outline"
               class="absolute text-blue-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
           </a-button>
-          <a-button shape="circle" class="relative hover:!border-red-200 hover:bg-red-50">
+          <a-button shape="circle" class="relative hover:!border-red-200 hover:bg-red-50"
+            @click="showConfirmDelete(record.id)">
             <Icon name="trash_outline"
               class="absolute text-red-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
           </a-button>
@@ -39,7 +40,9 @@
 
 <script>
 import { h } from 'vue';
-import { Button, Table, Input } from 'ant-design-vue';
+import { Button, Table, Input, Modal } from 'ant-design-vue';
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { createVNode } from 'vue';
 import { getDate, getQuery, convertSortOrder } from '../../utils/utils';
 import { debounce } from 'lodash';
 import { router } from '@inertiajs/vue3';
@@ -85,6 +88,17 @@ export default {
         page_size: 10
       });
     },
+    showConfirmDelete: (id) => {
+      Modal.confirm({
+        centered: true,
+        title: "Do you want to delete this item?",
+        icon: createVNode(ExclamationCircleOutlined),
+        content: createVNode('div', { class: 'text-red-500' }, "This action can't be undo."),
+        onOk() {
+          router.delete(route('artists.destroy', id));
+        }
+      })
+    }
   },
   computed: {
     columns() {
