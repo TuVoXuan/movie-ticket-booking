@@ -17,15 +17,18 @@
     <a-table :data-source="artists.data" :columns="columns" :pagination="pagination" @change="handleTableChange">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'birthday'">
-          {{ getDate(record.birthday, 'DD-MM-YYYY') }}
+          {{ dayjs(record.birthday).format('DD/MM/YYYY') }}
         </div>
         <div v-if="column.key === 'created_at'">
-          {{ getDate(record.created_at, 'DD-MM-YYYY') }}
+          {{ dayjs(record.created_at).format('DD/MM/YYYY') }}
         </div>
         <div v-if="column.key === 'action'" class="flex items-center gap-x-3">
           <a-button shape="circle" class="relative hover:!border-blue-200 hover:bg-blue-50">
+            <Link :href="route('artists.edit', record.id)">
             <Icon name="pen_outline"
               class="absolute text-blue-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
+            </Link>
+
           </a-button>
           <a-button shape="circle" class="relative hover:!border-red-200 hover:bg-red-50"
             @click="showConfirmDelete(record.id)">
@@ -46,6 +49,7 @@ import { createVNode } from 'vue';
 import { getDate, getQuery, convertSortOrder } from '../../utils/utils';
 import { debounce } from 'lodash';
 import { router } from '@inertiajs/vue3';
+import dayjs from 'dayjs';
 
 export default {
   name: "ArtistsPage",
@@ -58,7 +62,8 @@ export default {
   data() {
     return {
       search: null,
-      sortInfo: {}
+      sortInfo: {},
+      dayjs
     }
   },
   methods: {

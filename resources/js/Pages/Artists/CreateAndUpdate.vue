@@ -6,7 +6,7 @@
         <a-input v-model:value="name" />
       </a-form-item>
       <a-form-item class="mb-0" label="Birthday" v-bind="birthdayProps">
-        <a-date-picker class="w-full" v-model:value="birthday" />
+        <a-date-picker class="w-full" v-model:value="birthday" format="DD/MM/YYYY" />
       </a-form-item>
       <a-form-item class="col-span-2 mb-0" label="Biography" v-bind="biographyProps">
         <a-textarea v-model:value="biography" :rows="10" />
@@ -23,6 +23,7 @@ import * as yup from 'yup'
 import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
 import { toRefs, ref } from 'vue'
+import dayjs from 'dayjs';
 
 const props = defineProps(['artist']);
 const { artist } = toRefs(props);
@@ -38,7 +39,7 @@ const { defineField, handleSubmit, resetForm, errors } = useForm({
   initialValues: {
     name: artist.value?.name,
     biography: artist.value?.biography,
-    birthday: artist.value?.birthday ? new Date(artist.value.birthday) : null
+    birthday: artist.value?.birthday ? new dayjs(artist.value.birthday) : null
   }
 })
 
