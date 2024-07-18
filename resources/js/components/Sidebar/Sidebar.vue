@@ -22,7 +22,7 @@ export default {
           title: 'Dashboard',
         },
         {
-          href: 'films',
+          href: 'films.index',
           activeIcon: 'film_solid',
           inactiveIcon: 'film_outline',
           title: 'Films',

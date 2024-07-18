@@ -14,9 +14,11 @@
         "vite": "^5.0.0"
     },
     "dependencies": {
+        "@ant-design/icons-vue": "^7.0.1",
         "@inertiajs/vue3": "^1.2.0",
         "@primevue/themes": "^4.0.0",
         "@vitejs/plugin-vue": "^5.0.5",
+        "ant-design-vue": "^4.2.3",
         "dayjs": "^1.11.11",
         "lodash": "^4.17.21",
         "primeicons": "^7.0.0",

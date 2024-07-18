@@ -1,109 +1,94 @@
 <template>
-  <Box>
-    <div class="flex justify-end">
-      <Button>
+  <Box class="p-4">
+    <div class="flex justify-between mb-4">
+      <div>
+        <a-input v-model:value="search" placeholder="Search ..." @input="onSearchChange">
+          <template #prefix>
+            <Icon name="search_outline" class="h-5 w-5" />
+          </template>
+
+        </a-input>
+      </div>
+      <a-button type="primary">
         <Link :href="route('artists.create')">Add New Artist</Link>
-      </Button>
+      </a-button>
     </div>
 
-    <DataTable v-model:selection="selectedRow" dataKey="id" :value="artists.data" removableSort lazy paginator
-      :first="first" :totalRecords="artists.total" :rows="rows" :sortField="sortField" :sortOrder="sortOrder"
-      :rowsPerPageOptions="[5, 10, 20, 30]" @page="onChangePage" @sort="onSort"
-      paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} artists">
-      <template #header>
-        <div class="flex flex-wrap gap-2 items-center justify-between">
-          <h4 class="text-xl font-medium">Manage Artists</h4>
-
-          <IconField>
-            <InputIcon class="pi pi-search" />
-            <InputText :value="search" @input="onSearchChange" class="w-full" placeholder="Search" />
-          </IconField>
+    <a-table :data-source="artists.data" :columns="columns" :pagination="pagination" @change="handleTableChange">
+      <template #bodyCell="{ column, record }">
+        <div v-if="column.key === 'birthday'">
+          {{ getDate(record.birthday, 'DD-MM-YYYY') }}
+        </div>
+        <div v-if="column.key === 'created_at'">
+          {{ getDate(record.created_at, 'DD-MM-YYYY') }}
+        </div>
+        <div v-if="column.key === 'action'" class="flex items-center gap-x-3">
+          <a-button shape="circle" class="relative hover:!border-blue-200 hover:bg-blue-50">
+            <Icon name="pen_outline"
+              class="absolute text-blue-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
+          </a-button>
+          <a-button shape="circle" class="relative hover:!border-red-200 hover:bg-red-50">
+            <Icon name="trash_outline"
+              class="absolute text-red-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
+          </a-button>
         </div>
       </template>
-
-      <Column selectionMode="single" headerStyle="width: 3rem"></Column>
-      <Column field="name" header="Name" sortable></Column>
-      <Column field="birthday" header="Birthday" sortable>
-        <template #body="slotProps">
-          {{ getDate(slotProps.data.birthday, 'DD-MM-YYYY') }}
-        </template>
-      </Column>
-      <Column field="created_at" header="Created At" sortable>
-        <template #body="slotProps">
-          {{ getDate(slotProps.data.created_at, 'DD-MM-YYYY') }}
-        </template>
-      </Column>
-      <Column header="Actions">
-        <template #body="slotProps">
-          <div class="flex items-center gap-x-3">
-            <button class="h-8 w-8 text-blue-400 bg-white hover:bg-blue-100 transition-colors ease-linear rounded-full">
-              <Link :href="route('artists.edit', slotProps.data.id)">
-              <i class="pi pi-pencil"></i>
-              </Link>
-            </button>
-            <button @click="confirmDelete(slotProps.data.id)"
-              class="h-8 w-8 text-red-400 bg-white hover:bg-red-100 transition-colors ease-linear rounded-full">
-              <i class="pi pi-trash"></i>
-            </button>
-          </div>
-        </template>
-      </Column>
-    </DataTable>
+    </a-table>
   </Box>
 </template>
 
 <script>
-import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import { router } from '@inertiajs/vue3';
-import IconField from 'primevue/iconfield';
-import InputIcon from 'primevue/inputicon';
-import InputText from 'primevue/inputtext';
+import { h } from 'vue';
+import { Button, Table, Input } from 'ant-design-vue';
 import { getDate, getQuery, convertSortOrder } from '../../utils/utils';
 import { debounce } from 'lodash';
+import { router } from '@inertiajs/vue3';
 
 export default {
   name: "ArtistsPage",
   props: ['artists'],
   components: {
-    DataTable,
-    Column,
     Button,
-    InputIcon,
-    IconField,
-    InputText
+    Table,
+    Input
   },
   data() {
+    const columns = [
+      {
+        title: 'Name',
+        dataIndex: 'name',
+        key: 'name',
+      },
+      {
+        title: 'Birthday',
+        dataIndex: 'birthday',
+        key: 'birthday'
+      },
+      {
+        title: 'Created At',
+        dataIndex: 'created_at',
+        key: 'created_at',
+      },
+      {
+        title: 'Action',
+        key: 'action',
+      },
+    ]
     return {
-      search: '',
-      rows: 10,
-      selectedRow: null,
-      first: 0,
-      loading: false,
-      sortField: null,
-      sortOrder: null,
+      columns,
+      search: null
     }
   },
   methods: {
+    h,
     getDate,
-    onChangePage(event) {
+    handleTableChange(pagination, filters, sorter) {
       const query = getQuery();
       router.get(route('artists.index'), {
         ...query,
-        page: event.page + 1,
-        page_size: event.rows
+        page: pagination.current,
+        page_size: pagination.pageSize
       })
-    },
-    onSort(event) {
-      const query = getQuery();
-      router.get(route('artists.index'), {
-        ...query,
-        page: 1,
-        sort: event.sortField,
-        sort_order: convertSortOrder(event.sortOrder)
-      });
     },
     onSearchChange: debounce(function (event) {
       this.handleSearch(event.target.value);
@@ -113,36 +98,29 @@ export default {
       const query = getQuery();
       router.get(route('artists.index'), {
         ...query,
-        search: searchText
+        search: searchText,
+        page: 0,
+        page_size: 10
       });
     },
-    confirmDelete(id) {
-      this.$confirm.require({
-        message: 'Are you sure you want to delete it?',
-        header: 'Warning',
-        icon: 'pi pi-info-circle',
-        rejectProps: {
-          label: "Cancel",
-          severity: 'secondary',
-          outlined: true
-        },
-        acceptProps: {
-          label: 'Delete',
-          severity: 'danger'
-        },
-        accept: () => {
-          router.delete(route('artists.destroy', id));
-        }
-      })
+  },
+  computed: {
+    pagination() {
+      return {
+        total: this.artists.total,
+        current: this.artists.current_page,
+        pageSize: this.artists.per_page,
+        showSizeChanger: true,
+        pageSizeOptions: ['5', '10', '20', '30'],
+        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+      }
     }
   },
   mounted() {
     const query = getQuery();
-    this.first = (this.artists.current_page - 1) * this.artists.per_page;
-    this.rows = this.artists.per_page;
-    this.sortField = query.sort || null;
-    this.sortOrder = convertSortOrder(query.sort_order);
-    this.search = query.search || null;
+    this.search = query.search || '';
+    this.pagination.current = query.page ? parseInt(query.page) : 0;
+    this.pagination.pageSize = query.page_size ? parseInt(query.page_size) : 0
   },
 }
 

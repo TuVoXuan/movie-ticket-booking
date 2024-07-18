@@ -2,15 +2,12 @@ import './bootstrap';
 
 import { createApp, h } from 'vue'
 import { createInertiaApp, Link } from '@inertiajs/vue3'
-import PrimeVue from 'primevue/config'
-import Aura from '@primevue/themes/aura';
-import 'primeicons/primeicons.css'
 import PageLayout from './layouts/PageLayout.vue';
 import Icon from './components/icons/Icon.vue';
 import Box from './components/Box/Box.vue';
 import {ZiggyVue} from '../../vendor/tightenco/ziggy'
-import ToastService from 'primevue/toastservice';
-import ConfirmationService from 'primevue/confirmationservice';
+import Antd from 'ant-design-vue';
+import 'ant-design-vue/dist/reset.css';
 
 createInertiaApp({
   resolve: name => {
@@ -23,13 +20,7 @@ createInertiaApp({
     createApp({ render: () => h(App, props) })
       .use(plugin)
       .use(ZiggyVue)
-      .use(PrimeVue, {
-        theme: {
-          preset: Aura
-        }
-      })
-      .use(ToastService)
-      .use(ConfirmationService)
+      .use(Antd)
       .component('Icon', Icon)
       .component('Link', Link)
       .component('Box', Box)

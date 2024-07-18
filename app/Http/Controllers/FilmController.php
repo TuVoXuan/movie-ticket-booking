@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class FilmController extends Controller
 {
@@ -11,7 +12,7 @@ class FilmController extends Controller
      */
     public function index()
     {
-        return view('film.index');
+        return Inertia::render('Films/Index');
     }
 
     /**
@@ -19,7 +20,7 @@ class FilmController extends Controller
      */
     public function create()
     {
-        return view('film.create');
+        return Inertia::render('Films/Create');
     }
 
     /**

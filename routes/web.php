@@ -21,9 +21,9 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return Inertia::render('Dashboard');
 })->name('dashboard');
-Route::get('/films', function () {
-    return Inertia::render('FilmsPage');
-})->name('films');
+
+Route::resource('films', FilmController::class)
+    ->only(['index', 'create']);
 
 Route::resource('artists', ArtistController::class)
     ->only(['index', 'create', 'store', 'edit', 'destroy', 'update']);

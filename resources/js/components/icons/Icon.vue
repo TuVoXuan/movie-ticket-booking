@@ -1,5 +1,5 @@
 <template>
-  <component :is="dynamicComponent" />
+  <component :is="dynamicComponent" :class="class" />
 </template>
 
 <script>
@@ -12,6 +12,9 @@ export default {
       type: String,
       required: true,
     },
+    class: {
+      type: String
+    }
   },
   computed: {
     dynamicComponent() {
