@@ -21,6 +21,7 @@ return new class extends Migration
             $table->float('longitude');
             $table->foreignIdFor(Region::class)->constrained();
             $table->foreignIdFor(CinemaCompany::class)->constrained();
+            $table->string('code');
             $table->timestamps();
         });
     }

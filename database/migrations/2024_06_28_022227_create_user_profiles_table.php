@@ -16,8 +16,10 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained();
             $table->string('phone');
-            $table->string('avatar');
+            $table->unsignedBigInteger('avatar')->nullable();
             $table->timestamps();
+
+            $table->foreign('avatar')->references('id')->on('files')->onDelete('cascade');
         });
     }
 

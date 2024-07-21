@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->unsignedInteger('capacity');
             $table->string('seat_direction');
+            $table->string('code');
             $table->timestamps();
         });
     }

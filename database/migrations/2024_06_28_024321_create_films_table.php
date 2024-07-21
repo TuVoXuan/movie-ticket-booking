@@ -17,11 +17,15 @@ return new class extends Migration
             $table->unsignedInteger('duration');
             $table->unsignedInteger('age_restricted')->nullable();
             $table->string('trailer')->nullable();
-            $table->string('thumbnail');
-            $table->string('thumbnail_bg')->nullable();
+            $table->unsignedBigInteger('thumbnail')->nullable();
+            $table->unsignedBigInteger('thumbnail_bg')->nullable();
             $table->string('title');
             $table->string('description');
+            $table->string('code');
             $table->timestamps();
+
+            $table->foreign('thumbnail')->references('id')->on('files')->onDelete('cascade');
+            $table->foreign('thumbnail_bg')->references('id')->on('files')->onDelete('cascade');
         });
     }
 
