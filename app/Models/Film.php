@@ -9,6 +9,17 @@ class Film extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'title',
+        'release_date',
+        'duration',
+        'age_restricted',
+        'trailer',
+        'thumbnail',
+        'thumbnail_bg',
+        'description',
+    ];
+
     public function genres()
     {
         return $this->belongsToMany(Genre::class, 'film_genre');
@@ -37,5 +48,15 @@ class Film extends Model
     public function screenings()
     {
         return $this->hasMany(Screening::class);
+    }
+
+    public function thumbnail()
+    {
+        return $this->hasOne(File::class);
+    }
+
+    public function thumbnailBg()
+    {
+        return $this->hasOne(File::class);
     }
 }

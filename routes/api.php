@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\API\ArtistController;
+use App\Http\Controllers\API\GenreController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::prefix('v1')->group(function () {
+    Route::get('artists', [ArtistController::class, 'getList'])->name('apiArtists.index');
+    Route::get('genres', [GenreController::class, 'getAll'])->name('apiGenres.index');
 });

@@ -8,9 +8,18 @@
     font-style: normal;
 }
 
-.ant-input,
+/* .ant-input,
 .ant-picker,
 .ant-input-affix-wrapper {
     padding-top: 8px;
     padding-bottom: 8px;
+}
+
+
+.ant-select-selector  {
+    padding-top: 4.5px !important;
+    padding-bottom: 4.5px !important;
+} */
+.ant-select-selection-item-content{
+    font-size: 14px;
 }
