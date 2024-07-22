@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SlugHelper;
 use App\Models\Artist;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -50,8 +51,8 @@ class ArtistController extends Controller
     {
         $validated = Validator::make($request->all(), [
             'name' => 'required|string|min:3',
-            'biography' => 'required|string',
-            'birthday' => 'required|date'
+            'biography' => 'string',
+            'birthday' => 'date|nullable'
         ]);
 
         if ($validated->fails()) {
@@ -60,10 +61,12 @@ class ArtistController extends Controller
 
         try {
             $body = $request->all();
+            $code = SlugHelper::convertToSlug($body['name']);
             Artist::create([
                 'name' => $body['name'],
-                'biography' => $body['biography'],
-                'birthday' => Carbon::parse($body['birthday'])
+                'biography' => isset($body['birthday']) ? $body['biography'] : null,
+                'birthday' => isset($body['birthday']) ? Carbon::parse($body['birthday']) : null,
+                'code' => $code
             ]);
         } catch (\Throwable $th) {
             Log::error($th);

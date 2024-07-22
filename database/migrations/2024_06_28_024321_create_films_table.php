@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('thumbnail')->nullable();
             $table->unsignedBigInteger('thumbnail_bg')->nullable();
             $table->string('title');
-            $table->string('description');
+            $table->text('description');
             $table->string('code');
             $table->timestamps();
 

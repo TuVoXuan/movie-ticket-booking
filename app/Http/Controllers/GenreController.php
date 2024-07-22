@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use App\Helpers;
+use App\Helpers\SlugHelper;
 
 class GenreController extends Controller
 {
@@ -44,15 +46,17 @@ class GenreController extends Controller
     {
         try {
             $validated = Validator::make($request->all(), [
-                'name' => 'required|string|min:3'
+                'name' => 'required|string|min:3',
             ]);
             if ($validated->fails()) {
                 return back()->withErrors($validated->errors());
             }
 
             $body = $request->all();
+            $code = SlugHelper::convertToSlug($body['name']);
             Genre::create([
-                'name' => $body['name']
+                'name' => $body['name'],
+                'code' => $code
             ]);
 
             return redirect()->route('genres.index')->with('success', 'Create genre successfully.');

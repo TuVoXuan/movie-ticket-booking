@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('biography')->nullable();
-            $table->dateTime('birthday');
+            $table->dateTime('birthday')->nullable();
             $table->string('code');
             $table->timestamps();
         });

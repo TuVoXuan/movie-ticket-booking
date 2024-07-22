@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ArtistType;
+use App\Helpers\SlugHelper;
 use App\Models\File;
 use App\Models\Film;
 use App\Models\FilmArtist;
@@ -89,6 +90,7 @@ class FilmController extends Controller
                 $thumbnailBgId = $file->id;
             }
 
+            $code = SlugHelper::convertToSlug($body['title']);
             $film = Film::create([
                 'title' => $body['title'],
                 'release_date' => Carbon::parse($body['release_date']),
@@ -98,6 +100,7 @@ class FilmController extends Controller
                 'thumbnail' => $thumbnailId,
                 'thumbnail_bg' => $thumbnailBgId,
                 'description' => $body['description'],
+                'code' => $code
             ]);
 
             foreach ($body['directors'] as $id) {

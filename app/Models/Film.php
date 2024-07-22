@@ -18,6 +18,7 @@ class Film extends Model
         'thumbnail',
         'thumbnail_bg',
         'description',
+        'code'
     ];
 
     public function genres()
