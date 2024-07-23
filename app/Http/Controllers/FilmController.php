@@ -19,9 +19,25 @@ class FilmController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Inertia::render('Films/Index');
+        try {
+            $search = $request->query('search');
+            $pageSize = $request->query('page_size', 10);
+            $sort = $request->query('sort');
+            $sort_order = $request->query('sort_order', 'asc');
+
+            $films = Film::when($search, function ($query, $search) {
+                $query->where('title', 'LIKE', '%' . $search . '%');
+            })->when($sort, function ($query, $sort) use ($sort_order) {
+                $query->orderBy($sort, $sort_order);
+            })->paginate($pageSize);
+
+            return Inertia::render('Films/Index', ['films' => $films]);
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return Inertia::render('Films/Index')->with('error', 'An error occurred during get list films.');
+        }
     }
 
     /**

@@ -66,7 +66,7 @@ import { PlusOutlined, LoadingOutlined } from '@ant-design/icons-vue';
 import { Input, Textarea, DatePicker, InputNumber, Select, Form, FormItem, Spin } from 'ant-design-vue';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
-import { reactive, onMounted } from 'vue';
+import { reactive, onMounted, defineProps } from 'vue';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import { router } from '@inertiajs/vue3';

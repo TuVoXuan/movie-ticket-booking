@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ArtistType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -26,9 +27,26 @@ class Film extends Model
         return $this->belongsToMany(Genre::class, 'film_genre');
     }
 
-    public function artists()
+    // public function artists()
+    // {
+    //     return $this->belongsToMany(Artist::class, 'film_artist');
+    // }
+
+    public function directors()
     {
-        return $this->belongsToMany(Artist::class, 'film_artist');
+        return $this->belongsToMany(Artist::class, 'film_artist')
+            ->where('artist_type', ArtistType::Director->value);
+    }
+    public function producers()
+    {
+        return $this->belongsToMany(Artist::class, 'film_artist')
+            ->where('artist_type', ArtistType::Producer->value);
+    }
+
+    public function Actors()
+    {
+        return $this->belongsToMany(Artist::class, 'film_artist')
+            ->where('artist_type', ArtistType::Actor->value);
     }
 
     public function posts()
@@ -53,11 +71,11 @@ class Film extends Model
 
     public function thumbnail()
     {
-        return $this->hasOne(File::class);
+        return $this->belongsTo(File::class, 'thumbnail');
     }
 
     public function thumbnailBg()
     {
-        return $this->hasOne(File::class);
+        return $this->belongsTo(File::class, 'thumbnail_bg');
     }
 }

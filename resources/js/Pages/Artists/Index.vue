@@ -45,7 +45,7 @@ import { h } from 'vue';
 import { Button, Table, Input, Modal } from 'ant-design-vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { createVNode } from 'vue';
-import { getDate, getQuery, convertSortOrder } from '../../utils/utils';
+import { getQuery, convertSortOrder } from '../../utils/utils';
 import { debounce } from 'lodash';
 import { router } from '@inertiajs/vue3';
 import dayjs from 'dayjs';
@@ -67,7 +67,6 @@ export default {
   },
   methods: {
     h,
-    getDate,
     handleTableChange(pagination, filters, sorter) {
       this.sortInfo = sorter;
       const query = getQuery();
