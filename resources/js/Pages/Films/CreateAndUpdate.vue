@@ -3,59 +3,63 @@
     <h1 class="text-2xl text-center font-medium mb-4">Create New Film</h1>
     <a-form @submit.prevent="onSubmit" layout="vertical" class="grid grid-cols-2 gap-x-6 gap-y-3">
       <a-form-item class="mb-0" label="Title" v-bind="titleProps">
-        <a-input size="large" v-model:value="title" placeholder="Enter title" />
+        <a-input :disabled="isSubmitting" size="large" v-model:value="title" placeholder="Enter title" />
       </a-form-item>
       <a-form-item class="mb-0" label="Release Date" v-bind="releaseDateProps">
-        <a-date-picker size="large" class="w-full" v-model:value="releaseDate" format="DD/MM/YYYY" />
+        <a-date-picker :disabled="isSubmitting" size="large" class="w-full" v-model:value="releaseDate"
+          format="DD/MM/YYYY" />
       </a-form-item>
       <a-form-item class="mb-0" label="Duration" v-bind="durationProps">
-        <a-input-number size="large" class="w-full" v-model:value="duration" :min="0" placeholder="Enter duration" />
+        <a-input-number :disabled="isSubmitting" size="large" class="w-full" v-model:value="duration" :min="0"
+          placeholder="Enter duration" />
       </a-form-item>
       <a-form-item class="mb-0" label="Age restricted" v-bind="ageRestrictedProps">
-        <a-input-number size="large" class="w-full" v-model:value="ageRestricted" :min="0"
+        <a-input-number :disabled="isSubmitting" size="large" class="w-full" v-model:value="ageRestricted" :min="0"
           placeholder="Enter age restricted" />
       </a-form-item>
       <a-form-item class="mb-0" label="Trailer" v-bind="trailerProps">
-        <a-input size="large" v-model:value="trailer" placeholder="Enter trailer link" />
+        <a-input :disabled="isSubmitting" size="large" v-model:value="trailer" placeholder="Enter trailer link" />
       </a-form-item>
       <a-form-item class="mb-0" label="Directors" v-bind="directorsProps">
-        <a-select size="large" label-in-value v-model:value="directors" mode="multiple" placeholder="Select directors"
-          :options="artistsOptions.data" @search="handleSearch" :filter-option="false">
+        <a-select :disabled="isSubmitting" size="large" label-in-value v-model:value="directors" mode="multiple"
+          placeholder="Select directors" :options="artistsOptions.data" @search="handleSearch" :filter-option="false">
           <template v-if="artistsOptions.isFetching" #notFoundContent>
             <a-spin size="small" />
           </template>
         </a-select>
       </a-form-item>
       <a-form-item class="mb-0" label="Producers" v-bind="producersProps">
-        <a-select size="large" label-in-value v-model:value="producers" mode="multiple" placeholder="Select producers"
-          :options="artistsOptions.data" @search="handleSearch" :filter-option="false">
+        <a-select :disabled="isSubmitting" size="large" label-in-value v-model:value="producers" mode="multiple"
+          placeholder="Select producers" :options="artistsOptions.data" @search="handleSearch" :filter-option="false">
           <template v-if="artistsOptions.isFetching" #notFoundContent>
             <a-spin size="small" />
           </template>
         </a-select>
       </a-form-item>
       <a-form-item class="mb-0" label="Actors" v-bind="actorsProps">
-        <a-select size="large" label-in-value v-model:value="actors" mode="multiple" placeholder="Select actors"
-          :options="artistsOptions.data" @search="handleSearch" :filter-option="false">
+        <a-select :disabled="isSubmitting" size="large" label-in-value v-model:value="actors" mode="multiple"
+          placeholder="Select actors" :options="artistsOptions.data" @search="handleSearch" :filter-option="false">
           <template v-if="artistsOptions.isFetching" #notFoundContent>
             <a-spin size="small" />
           </template>
         </a-select>
       </a-form-item>
       <a-form-item class="mb-0" label="Genres" v-bind="genresProps">
-        <a-select size="large" label-in-value v-model:value="genres" mode="multiple" placeholder="Select genres"
-          :options="genresOptions.data" :filter-option="filterOption"></a-select>
+        <a-select :disabled="isSubmitting" size="large" label-in-value v-model:value="genres" mode="multiple"
+          placeholder="Select genres" :options="genresOptions.data" :filter-option="filterOption"></a-select>
       </a-form-item>
       <a-form-item class="col-start-1" label="Thumbnail" v-bind="thumbnailProps">
-        <Upload v-model:fileList="thumbnail" :url="thumbnailURL" />
+        <Upload :disabled="isSubmitting" v-model:fileList="thumbnail" :url="thumbnailURL" />
       </a-form-item>
       <a-form-item label="Thumbnail Background" v-bind="thumbnailBgProps">
-        <Upload v-model:fileList="thumbnailBg" :url="thumbnailBgURL" />
+        <Upload :disabled="isSubmitting" v-model:fileList="thumbnailBg" :url="thumbnailBgURL" />
       </a-form-item>
       <a-form-item class="col-span-2 mb-0" label="Description" v-bind="descriptionProps">
-        <a-textarea size="large" v-model:value="description" :rows="8" placeholder="Enter description" />
+        <a-textarea :disabled="isSubmitting" size="large" v-model:value="description" :rows="8"
+          placeholder="Enter description" />
       </a-form-item>
-      <a-button type="primary" htmlType="submit" class="w-fit">Save</a-button>
+      <a-button :loading="isSubmitting" :disabled="isSubmitting" type="primary" htmlType="submit"
+        class="w-fit">Save</a-button>
     </a-form>
   </Box>
 </template>
@@ -66,7 +70,7 @@ import { PlusOutlined, LoadingOutlined } from '@ant-design/icons-vue';
 import { Input, Textarea, DatePicker, InputNumber, Select, Form, FormItem, Spin } from 'ant-design-vue';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
-import { reactive, onMounted, defineProps, toRefs } from 'vue';
+import { reactive, onMounted, defineProps, toRefs, ref } from 'vue';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import { router } from '@inertiajs/vue3';
@@ -77,6 +81,7 @@ const props = defineProps(['film']);
 const { film } = toRefs(props);
 const thumbnailURL = film.value?.thumbnail.url;
 const thumbnailBgURL = film.value?.thumbnail_bg.url;
+const isSubmitting = ref(false);
 
 const schema = yup.object().shape({
   releaseDate: yup.date().nullable(),
@@ -156,7 +161,7 @@ const getAddNewItems = (filmItems, valueItems) => {
 }
 
 const onSubmit = handleSubmit((values) => {
-  console.log("values: ", values);
+  isSubmitting.value = true;
   const formData = new FormData();
   formData.append('title', values.title);
   formData.append('release_date', values.releaseDate.toISOString());
@@ -167,13 +172,9 @@ const onSubmit = handleSubmit((values) => {
 
   if (film.value) {
     const addNewDirectors = getAddNewItems(film.value.directors, values.directors);
-    console.log("addNewDirectors: ", addNewDirectors);
     const addNewProducers = getAddNewItems(film.value.producers, values.producers);
-    console.log("addNewProducers: ", addNewProducers);
     const addNewActors = getAddNewItems(film.value.actors, values.actors);
-    console.log("addNewActors: ", addNewActors);
     const addNewGenres = getAddNewItems(film.value.genres, values.genres);
-    console.log("addNewGenres: ", addNewGenres);
 
     const deletedDirectors = getDeletedItems(film.value.directors, values.directors);
     const deletedProducers = getDeletedItems(film.value.producers, values.producers);

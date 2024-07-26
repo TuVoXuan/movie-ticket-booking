@@ -321,6 +321,29 @@ class FilmController extends Controller
    */
   public function destroy(string $id)
   {
-    //
+    try {
+      $film = Film::find($id);
+      if (!$film) {
+        return back()->with('error', 'Film not found');
+      }
+      FilmArtist::where('film_id', $id)->delete();
+      FilmGenre::where('film_id', $id)->delete();
+
+      $thumbnail = File::find($film->thumbnail);
+      $thumbnailBg = File::find($film->thumbnail_bg);
+
+      $film->delete();
+
+      Cloudinary::destroy($thumbnail->public_id);
+      $thumbnail->delete();
+
+      Cloudinary::destroy($thumbnailBg->public_id);
+      $thumbnailBg->delete();
+
+      return redirect()->route('films.index')->with('success', 'Delete film successfully.');
+    } catch (\Throwable $th) {
+      Log::error($th);
+      return redirect()->route('films.index')->with('error', 'An error occurred during delete film.');
+    }
   }
 }
