@@ -23,7 +23,7 @@ Route::get('/', function () {
 })->name('dashboard');
 
 Route::resource('films', FilmController::class)
-    ->only(['index', 'create', 'store', 'edit', 'destroy']);
+    ->only(['index', 'create', 'store', 'edit', 'destroy', 'update']);
 
 Route::resource('artists', ArtistController::class)
     ->only(['index', 'create', 'store', 'edit', 'destroy', 'update']);

@@ -2,7 +2,7 @@
   <Box class="p-4">
     <div class="flex justify-between mb-4">
       <div>
-        <a-input v-model:value="search" placeholder="Search ..." @input="onSearchChange">
+        <a-input size="large" v-model:value="search" placeholder="Search ..." @input="onSearchChange">
           <template #prefix>
             <Icon name="search_outline" class="h-5 w-5" />
           </template>
@@ -16,7 +16,7 @@
     <a-table :data-source="artists.data" :columns="columns" :pagination="pagination" @change="handleTableChange">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'birthday'">
-          {{ dayjs(record.birthday).format('DD/MM/YYYY') }}
+          {{ record.birthday ? dayjs(record.birthday).format('DD/MM/YYYY') : '-' }}
         </div>
         <div v-if="column.key === 'created_at'">
           {{ dayjs(record.created_at).format('DD/MM/YYYY') }}

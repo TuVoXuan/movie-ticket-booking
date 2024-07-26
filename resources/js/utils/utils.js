@@ -24,3 +24,11 @@ export function convertSortOrder(sortOrder){
       return null;
   }
 }
+
+export function getRemovedItems(original, newArray) {
+  return original.filter(item => !newArray.includes(item));
+}
+
+export function getNewItems(original, newArray) {
+  return newArray.filter(item => !original.includes(item));
+}

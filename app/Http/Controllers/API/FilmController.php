@@ -14,7 +14,7 @@ class FilmController extends BaseController
         try {
             $film = Film::with(['genres', 'directors', 'producers', 'actors', 'thumbnail', 'thumbnailBg'])->find($id);
             if (!$film) {
-                return redirect()->route('films.index')->with('error', 'Film not found.');
+                return $this->sendError('Film not found', [], Response::HTTP_NOT_FOUND);
             }
 
             return $this->sendResponse($film, 'Get film details successfully.');

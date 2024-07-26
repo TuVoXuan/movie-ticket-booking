@@ -19,7 +19,7 @@
         <a-input size="large" v-model:value="trailer" placeholder="Enter trailer link" />
       </a-form-item>
       <a-form-item class="mb-0" label="Directors" v-bind="directorsProps">
-        <a-select size="large" v-model:value="directors" mode="multiple" placeholder="Select directors"
+        <a-select size="large" label-in-value v-model:value="directors" mode="multiple" placeholder="Select directors"
           :options="artistsOptions.data" @search="handleSearch" :filter-option="false">
           <template v-if="artistsOptions.isFetching" #notFoundContent>
             <a-spin size="small" />
@@ -27,7 +27,7 @@
         </a-select>
       </a-form-item>
       <a-form-item class="mb-0" label="Producers" v-bind="producersProps">
-        <a-select size="large" v-model:value="producers" mode="multiple" placeholder="Select producers"
+        <a-select size="large" label-in-value v-model:value="producers" mode="multiple" placeholder="Select producers"
           :options="artistsOptions.data" @search="handleSearch" :filter-option="false">
           <template v-if="artistsOptions.isFetching" #notFoundContent>
             <a-spin size="small" />
@@ -35,7 +35,7 @@
         </a-select>
       </a-form-item>
       <a-form-item class="mb-0" label="Actors" v-bind="actorsProps">
-        <a-select size="large" v-model:value="actors" mode="multiple" placeholder="Select actors"
+        <a-select size="large" label-in-value v-model:value="actors" mode="multiple" placeholder="Select actors"
           :options="artistsOptions.data" @search="handleSearch" :filter-option="false">
           <template v-if="artistsOptions.isFetching" #notFoundContent>
             <a-spin size="small" />
@@ -43,14 +43,14 @@
         </a-select>
       </a-form-item>
       <a-form-item class="mb-0" label="Genres" v-bind="genresProps">
-        <a-select size="large" v-model:value="genres" mode="multiple" placeholder="Select genres"
+        <a-select size="large" label-in-value v-model:value="genres" mode="multiple" placeholder="Select genres"
           :options="genresOptions.data" :filter-option="filterOption"></a-select>
       </a-form-item>
       <a-form-item class="col-start-1" label="Thumbnail" v-bind="thumbnailProps">
-        <Upload v-model:fileList="thumbnail" />
+        <Upload v-model:fileList="thumbnail" :url="thumbnailURL" />
       </a-form-item>
       <a-form-item label="Thumbnail Background" v-bind="thumbnailBgProps">
-        <Upload v-model:fileList="thumbnailBg" />
+        <Upload v-model:fileList="thumbnailBg" :url="thumbnailBgURL" />
       </a-form-item>
       <a-form-item class="col-span-2 mb-0" label="Description" v-bind="descriptionProps">
         <a-textarea size="large" v-model:value="description" :rows="8" placeholder="Enter description" />
@@ -66,10 +66,17 @@ import { PlusOutlined, LoadingOutlined } from '@ant-design/icons-vue';
 import { Input, Textarea, DatePicker, InputNumber, Select, Form, FormItem, Spin } from 'ant-design-vue';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
-import { reactive, onMounted, defineProps } from 'vue';
+import { reactive, onMounted, defineProps, toRefs } from 'vue';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import { router } from '@inertiajs/vue3';
+import dayjs from 'dayjs';
+import { getRemovedItems, getNewItems } from '../../utils/utils'
+
+const props = defineProps(['film']);
+const { film } = toRefs(props);
+const thumbnailURL = film.value?.thumbnail.url;
+const thumbnailBgURL = film.value?.thumbnail_bg.url;
 
 const schema = yup.object().shape({
   releaseDate: yup.date().nullable(),
@@ -87,7 +94,21 @@ const schema = yup.object().shape({
 });
 
 const { defineField, handleSubmit, resetForm, errors } = useForm({
-  validationSchema: schema
+  validationSchema: schema,
+  initialValues: {
+    releaseDate: dayjs(film.value?.release_date),
+    duration: film.value?.duration,
+    ageRestricted: film.value?.age_restricted,
+    trailer: film.value?.trailer,
+    title: film.value?.title,
+    description: film.value?.description,
+    genres: film.value?.genres.map((item) => ({ value: item.id, label: item.name })),
+    directors: film.value?.directors.map((item) => ({ value: item.id, label: item.name })),
+    producers: film.value?.producers.map((item) => ({ value: item.id, label: item.name })),
+    actors: film.value?.actors.map((item) => ({ value: item.id, label: item.name })),
+    thumbnail: [{ uid: film.value?.thumbnail.id, url: film.value?.thumbnail.url, }],
+    thumbnailBg: [{ uid: film.value?.thumbnail_bg.id, url: film.value?.thumbnail_bg.url }],
+  }
 });
 
 const antConfig = (state) => ({
@@ -120,6 +141,20 @@ const genresOptions = reactive({
   data: []
 });
 
+const getDeletedItems = (filmItems, valueItems) => {
+  return getRemovedItems(
+    filmItems.map(item => item.id),
+    valueItems.map(item => item.value)
+  );
+};
+
+const getAddNewItems = (filmItems, valueItems) => {
+  return getNewItems(
+    filmItems.map(item => item.id),
+    valueItems.map(item => item.value)
+  )
+}
+
 const onSubmit = handleSubmit((values) => {
   console.log("values: ", values);
   const formData = new FormData();
@@ -128,24 +163,91 @@ const onSubmit = handleSubmit((values) => {
   formData.append('duration', values.duration);
   formData.append('age_restricted', values.ageRestricted);
   formData.append('trailer', values.trailer);
-  formData.append('thumbnail', values.thumbnail[0].originFileObj);
-  formData.append('thumbnail_bg', values.thumbnailBg[0].originFileObj);
   formData.append('description', values.description);
 
-  for (const directorId of values.directors) {
-    formData.append('directors[]', directorId)
-  }
-  for (const producers of values.producers) {
-    formData.append('producers[]', producers)
-  }
-  for (const actors of values.actors) {
-    formData.append('actors[]', actors)
-  }
-  for (const genres of values.genres) {
-    formData.append('genres[]', genres)
-  }
+  if (film.value) {
+    const addNewDirectors = getAddNewItems(film.value.directors, values.directors);
+    console.log("addNewDirectors: ", addNewDirectors);
+    const addNewProducers = getAddNewItems(film.value.producers, values.producers);
+    console.log("addNewProducers: ", addNewProducers);
+    const addNewActors = getAddNewItems(film.value.actors, values.actors);
+    console.log("addNewActors: ", addNewActors);
+    const addNewGenres = getAddNewItems(film.value.genres, values.genres);
+    console.log("addNewGenres: ", addNewGenres);
 
-  router.post(route('films.store'), formData);
+    const deletedDirectors = getDeletedItems(film.value.directors, values.directors);
+    const deletedProducers = getDeletedItems(film.value.producers, values.producers);
+    const deletedActors = getDeletedItems(film.value.actors, values.actors);
+    const deletedGenres = getDeletedItems(film.value.genres, values.genres);
+
+    const arrayFields = [
+      {
+        key: 'directors',
+        value: addNewDirectors
+      },
+      {
+        key: 'producers',
+        value: addNewProducers
+      },
+      {
+        key: 'actors',
+        value: addNewActors
+      },
+      {
+        key: 'genres',
+        value: addNewGenres
+      },
+      {
+        key: 'deleted_directors',
+        value: deletedDirectors
+      },
+      {
+        key: 'deleted_producers',
+        value: deletedProducers
+      },
+      {
+        key: 'deleted_actors',
+        value: deletedActors
+      },
+      {
+        key: 'deleted_genres',
+        value: deletedGenres
+      }
+    ]
+
+    arrayFields.forEach(field => {
+      field.value.forEach(id => {
+        formData.append(`${field.key}[]`, id);
+      });
+    });
+
+    if (!values.thumbnail[0].url) {
+      formData.append('thumbnail', values.thumbnail[0].originFileObj);
+    }
+
+    if (!values.thumbnailBg[0].url) {
+      formData.append('thumbnail_bg', values.thumbnailBg[0].originFileObj);
+    }
+
+    router.post(route('films.update', {
+      film: film.value.id,
+      _query: {
+        _method: 'PUT'
+      }
+    }), formData);
+  } else {
+    formData.append('thumbnail', values.thumbnail[0].originFileObj);
+    formData.append('thumbnail_bg', values.thumbnailBg[0].originFileObj);
+
+    const arrayFields = ['directors', 'producers', 'actors', 'genres'];
+    arrayFields.forEach(field => {
+      for (const item of values[field]) {
+        formData.append(`${field}[]`, item.value)
+      }
+    });
+
+    router.post(route('films.store'), formData);
+  }
 });
 
 async function handleGetArtists(search) {
@@ -157,7 +259,10 @@ async function handleGetArtists(search) {
       }
     });
     artistsOptions.data = response.data.data.data.map((item) => ({ value: item.id, label: item.name }));
-    artistsOptions.isFetching = false;
+
+    setTimeout(() => {
+      artistsOptions.isFetching = false;
+    }, 500)
   } catch (error) {
     console.log("error: ", error);
   }

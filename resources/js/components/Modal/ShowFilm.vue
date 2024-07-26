@@ -1,7 +1,7 @@
 <template>
   <div class="relative z-[1]">
-    <div class="absolute top-0 left-0 right-0 bottom-0 z-[-1] overflow-hidden">
-      <img :src="film.thumbnail_bg.url" class="h-auto w-full" />
+    <div class="absolute top-0 left-0 right-0 bottom-0 z-[-1] overflow-hidden bg-cover bg-center bg-no-repeat"
+      :style="{ backgroundImage: 'url(' + film.thumbnail_bg.url + ')' }">
     </div>
     <div class="grid grid-cols-12 px-10 py-4 gap-3 bg-black/70">
       <div class="col-span-2">

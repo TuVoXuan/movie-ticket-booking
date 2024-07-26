@@ -2,7 +2,7 @@
   <Box>
     <div class="flex justify-between mb-4">
       <div>
-        <a-input v-model:value="search" placeholder="Search ..." @input="onSearchChange">
+        <a-input size="large" v-model:value="search" placeholder="Search ..." @input="onSearchChange">
           <template #prefix>
             <Icon name="search_outline" class="h-5 w-5" />
           </template>
