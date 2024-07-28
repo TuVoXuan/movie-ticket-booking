@@ -12,9 +12,11 @@
 <script setup>
 import { Upload } from 'ant-design-vue';
 import { PlusOutlined } from '@ant-design/icons-vue';
-import { ref, defineExpose } from 'vue';
+import { ref, defineExpose, watch, toRefs } from 'vue';
 
 const props = defineProps(['url', 'disabled']);
+
+const { url, disabled } = toRefs(props)
 
 const fileList = ref([]);
 const fileURL = ref(props.url || '');
@@ -25,6 +27,10 @@ const handleBeforeUpload = (file) => {
   fileList.value = [file];
   return false;
 }
+
+watch(url, (newVal, olVal) => {
+  fileURL.value = newVal;
+})
 
 defineExpose({
   fileList, fileURL

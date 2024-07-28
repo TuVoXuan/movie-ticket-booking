@@ -9,6 +9,8 @@ class CinemaCompany extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['name', 'logo'];
+
     public function branches()
     {
         return $this->hasMany(CinemaBranch::class);

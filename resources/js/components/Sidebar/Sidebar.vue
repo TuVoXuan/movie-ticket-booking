@@ -19,7 +19,6 @@ import { router } from '@inertiajs/vue3';
 export default {
   name: "Sidebar",
   components: {
-    SidebarItem,
     Menu
   },
   data() {
