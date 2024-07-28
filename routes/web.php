@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArtistController;
+use App\Http\Controllers\CinemaController;
 use App\Http\Controllers\FilmController;
 use App\Http\Controllers\GenreController;
 use Illuminate\Support\Facades\Route;
@@ -30,9 +31,12 @@ Route::resource('artists', ArtistController::class)
 
 Route::resource('genres', GenreController::class)
     ->only(['index', 'store', 'destroy', 'update']);
-Route::get('/cinemas', function () {
-    return Inertia::render('CinemasPage');
-})->name('cinemas');
+
+Route::prefix('cinemas')->group(function () {
+    Route::get('/companies', [CinemaController::class, 'companies'])->name('cinemas.companies.index');
+    Route::get('/branches', [CinemaController::class, 'branches'])->name('cinemas.branches.index');
+});
+
 Route::get('/roles', function () {
     return Inertia::render('RolesPage');
 })->name('roles');

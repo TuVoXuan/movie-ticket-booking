@@ -1,75 +1,117 @@
 <template>
-  <div class="flex flex-col gap-y-3">
-    <SidebarItem v-for="routeItem in routers" :href="routeItem.href" :title="routeItem.title"
-      :activeIcon="routeItem.activeIcon" :inactiveIcon="routeItem.inactiveIcon" />
-  </div>
+  <a-menu v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys" mode="inline" :items="items"
+    style="border-inline-end: none" @select="handleSelectNav" />
 </template>
 
 <script>
-import SidebarItem from './SidebarItem.vue';
+import { Menu } from 'ant-design-vue';
+import ChartOutline from '../icons/chart_outline.vue';
+import FilmOutline from '../icons/film_outline.vue';
+import ArtistOutline from '../icons/artist_outline.vue';
+import CategoryOutline from '../icons/category_outline.vue';
+import RoleOutline from '../icons/role_outline.vue';
+import BuildingOutline from '../icons/building_outline.vue';
+import PermissionOutline from '../icons/permission_outline.vue';
+import UserOutline from '../icons/user_outline.vue';
+import { h } from 'vue';
+import { router } from '@inertiajs/vue3';
+
 export default {
   name: "Sidebar",
   components: {
     SidebarItem,
+    Menu
   },
   data() {
     return {
-      routers: [
+      selectedKeys: [],
+      openKeys: [],
+      items: [
         {
-          href: 'dashboard',
-          activeIcon: 'chart_solid',
-          inactiveIcon: 'chart_outline',
+          key: 'dashboard',
+          icon: () => h(ChartOutline),
+          label: 'Dashboard',
           title: 'Dashboard',
         },
         {
-          href: 'films.index',
-          activeIcon: 'film_solid',
-          inactiveIcon: 'film_outline',
+          key: 'films.index',
+          icon: () => h(FilmOutline),
+          label: 'Films',
           title: 'Films',
         },
         {
-          href: 'artists.index',
-          activeIcon: 'artist_solid',
-          inactiveIcon: 'artist_outline',
-          title: 'Artist',
+          key: 'artists.index',
+          icon: () => h(ArtistOutline),
+          label: 'Artists',
+          title: 'Artists',
         },
         {
-          href: 'genres.index',
-          activeIcon: 'category_solid',
-          inactiveIcon: 'category_outline',
+          key: 'genres.index',
+          icon: () => h(CategoryOutline),
+          label: 'Genres',
           title: 'Genres',
         },
         {
-          href: 'cinemas',
-          activeIcon: 'building_solid',
-          inactiveIcon: 'building_outline',
+          key: 'cinemas',
+          icon: () => h(BuildingOutline),
+          label: 'Cinemas',
           title: 'Cinemas',
+          children: [
+            {
+              key: 'cinemas.companies.index',
+              label: 'Companies',
+              title: 'Companies',
+            },
+            {
+              key: 'cinemas.branches.index',
+              label: 'Branches',
+              title: 'Branches',
+            },
+          ]
         },
         {
-          href: 'roles',
-          activeIcon: 'role_solid',
-          inactiveIcon: 'role_outline',
+          key: 'roles',
+          icon: () => h(RoleOutline),
+          label: 'Roles',
           title: 'Roles',
         },
         {
-          href: 'permissions',
-          activeIcon: 'permission_solid',
-          inactiveIcon: 'permission_outline',
+          key: 'permissions',
+          icon: () => h(PermissionOutline),
+          label: 'Permissions',
           title: 'Permissions',
         },
         {
-          href: 'users',
-          activeIcon: 'user_solid',
-          inactiveIcon: 'user_outline',
+          key: 'users',
+          icon: () => h(UserOutline),
+          label: 'Users',
           title: 'Users',
         },
-      ]
+      ],
     }
   },
   methods: {
-    isActiveRoute(routeName) {
-      return route().current(routeName);
+    handleSelectNav({ item, key, selectedKeys }) {
+      router.get(route(key));
+    },
+    checkCurrentActiveRoute(routeName) {
+      const hrefSplit = routeName.split('.index');
+
+      if (route().current(hrefSplit[0] + '.*')) {
+        this.selectedKeys = [routeName]
+      }
     }
+  },
+  mounted() {
+    this.items.forEach((item) => {
+      if (item.children) {
+        item.children.forEach((childItem) => {
+          this.checkCurrentActiveRoute(childItem.key)
+        })
+      } else {
+        this.checkCurrentActiveRoute(item.key)
+      }
+    })
   }
 }
 </script>
