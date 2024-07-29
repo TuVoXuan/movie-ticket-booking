@@ -18,10 +18,14 @@ import { Input, Form, FormItem, Button } from 'ant-design-vue';
 import * as yup from 'yup'
 import { useForm } from 'vee-validate';
 import Upload from '../Upload/Upload.vue';
-import { ref, defineExpose } from 'vue'
+import { ref, defineExpose, defineProps, toRefs, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
+
+const props = defineProps(['cinemaCompany']);
+const { cinemaCompany } = toRefs(props);
 
 const isSubmitting = ref(false);
-const logoURL = ref();
+const logoURL = ref(cinemaCompany.value?.logo.url || '');
 
 const schema = yup.object().shape({
   logo: yup.array().required(),
@@ -29,7 +33,7 @@ const schema = yup.object().shape({
 })
 
 const { defineField, handleSubmit, errors, resetForm } = useForm({
-  validationSchema: schema
+  validationSchema: schema,
 });
 
 const antConfig = (state) => ({
@@ -44,15 +48,56 @@ const [logo, logoProps] = defineField('logo', antConfig);
 const [name, nameProps] = defineField('name', antConfig);
 
 const onSubmit = handleSubmit((values) => {
-  console.log("values: ", values);
-  isSubmitting.value = true;
+  try {
+    isSubmitting.value = true;
+    const formData = new FormData();
+
+    formData.append('name', values.name);
+
+
+    if (cinemaCompany.value) {
+      if (!values.logo[0].url) {
+        formData.append('logo', values.logo[0].originFileObj);
+      }
+
+      router.post(route('cinemas.companies.update', {
+        company: cinemaCompany.value.id,
+        _query: {
+          _method: 'PUT'
+        }
+      }), formData)
+    } else {
+      formData.append('logo', values.logo[0].originFileObj);
+      router.post(route('cinemas.companies.store'), formData);
+    }
+
+  } catch (error) {
+    console.log("error: ", error);
+  }
 })
 
 function handleResetForm() {
-  resetForm();
+  resetForm({
+    values: {
+      name: '',
+      logo: []
+    }
+  });
   isSubmitting.value = false;
   logoURL.value = '';
 }
+
+watch(cinemaCompany, (newVal, oldVal) => {
+  logoURL.value = newVal?.logo.url || '';
+  if (newVal) {
+    resetForm({
+      values: {
+        name: cinemaCompany.value?.name,
+        logo: [{ uid: cinemaCompany.value?.logo.id, url: cinemaCompany.value?.logo.url, }]
+      },
+    })
+  }
+})
 
 defineExpose({
   handleResetForm

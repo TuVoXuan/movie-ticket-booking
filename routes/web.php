@@ -34,6 +34,9 @@ Route::resource('genres', GenreController::class)
 
 Route::prefix('cinemas')->group(function () {
     Route::get('/companies', [CinemaController::class, 'companies'])->name('cinemas.companies.index');
+    Route::post('/companies', [CinemaController::class, 'storeCinema'])->name('cinemas.companies.store');
+    Route::put('/companies/{company}', [CinemaController::class, 'updateCinema'])->name('cinemas.companies.update');
+
     Route::get('/branches', [CinemaController::class, 'branches'])->name('cinemas.branches.index');
 });
 
