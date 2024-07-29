@@ -151,8 +151,23 @@ class CinemaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroyCinema(string $id)
     {
-        //
+        try {
+            $cinema = CinemaCompany::find($id);
+            if (!$cinema) {
+                return redirect()->route('cinemas.companies.index')->with('error', 'Cinema not found.');
+            }
+
+            $logo = File::find($cinema->logo);
+            $cinema->delete();
+            Cloudinary::destroy($logo->public_id);
+            $logo->delete();
+
+            return redirect()->route('cinemas.companies.index')->with('success', 'Delete cinema successfully.');
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return redirect()->route('cinemas.companies.index')->with('error', 'An error occurred during delete cinema.');
+        }
     }
 }

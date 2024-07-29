@@ -43,6 +43,8 @@ import { Button, Modal, Table } from 'ant-design-vue';
 import CinemaCompany from '../../components/Modal/CinemaCompany.vue';
 import { router } from '@inertiajs/vue3';
 import dayjs from 'dayjs';
+import { createVNode } from 'vue'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 
 export default {
   name: 'CinemaCompaniesPage',
@@ -89,6 +91,21 @@ export default {
     handleClickEdit(record) {
       this.selectedCinemaCompany = record;
       this.isOpen = true;
+    },
+    showConfirmDelete(id) {
+      Modal.confirm({
+        centered: true,
+        title: "Do you want to delete this item?",
+        icon: createVNode(ExclamationCircleOutlined),
+        content: createVNode('div', { class: 'text-red-500' }, "This action can't be undo."),
+        onOk() {
+
+          router.delete(route('cinema.companies.destroy', id));
+        },
+        okButtonProps: {
+          loading: this.loadingDelete
+        }
+      })
     }
   },
   mounted() {
