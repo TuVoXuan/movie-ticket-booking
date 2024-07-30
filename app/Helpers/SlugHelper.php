@@ -10,7 +10,7 @@ class SlugHelper
 
     // Replace Vietnamese characters with their ASCII equivalents
     $string = preg_replace('/[áàảãạ]/u', 'a', $string);
-    $string = preg_replace('/[ắằẳẵặ]/u', 'a', $string);
+    $string = preg_replace('/[ắằẳẵặă]/u', 'a', $string);
     $string = preg_replace('/[ấầẩẫậâ]/u', 'a', $string);
     $string = preg_replace('/[éèẻẽẹ]/u', 'e', $string);
     $string = preg_replace('/[ếềểễệê]/u', 'e', $string);

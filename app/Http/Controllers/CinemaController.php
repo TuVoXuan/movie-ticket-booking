@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\SlugHelper;
+use App\Models\CinemaBranch;
 use App\Models\CinemaCompany;
 use App\Models\File;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
@@ -21,17 +22,49 @@ class CinemaController extends Controller
         return Inertia::render('Cinemas/Companies', ['cinemas' => CinemaCompany::with('logo')->get()]);
     }
 
-    public function branches()
+    public function branches(Request $request)
     {
-        return Inertia::render('Cinemas/Branches');
+        try {
+            $search = $request->query('search');
+            $pageSize = $request->query('page_size', 10);
+            $sort = $request->query('sort');
+            $sort_order = $request->query('sort_order', 'asc');
+            $region = $request->query('region');
+            $company = $request->query('company');
+
+            $cinemaBranches = CinemaBranch::with(['region', 'cinemaCompany.logo'])
+                ->when($search, function ($query, $search) {
+                    $query->where('name', 'LIKE', '%' . $search . '%');
+                })
+                ->when($sort, function ($query, $sort) use ($sort_order) {
+                    $query->orderBy($sort, $sort_order);
+                })
+                ->when($region, function ($query) use ($region) {
+                    $query->whereHas('region', function ($q) use ($region) {
+                        $q->where('code', '=', $region);
+                    });
+                })
+                ->when($company, function ($query) use ($company) {
+                    $query->whereHas('cinemaCompany', function ($q) use ($company) {
+                        $q->where('code', '=', $company);
+                    });
+                })
+                ->paginate($pageSize);
+
+
+            return Inertia::render('Cinemas/Branches/Index', ['cinemaBranches' => $cinemaBranches]);
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return Inertia::render('Cinemas/Branches/Index')->with('error', 'An error occurred during get list cinema branches.');
+        }
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function createBranch()
     {
-        //
+        return Inertia::render('Cinemas/Branches/CreateAndUpdate');
     }
 
     /**
@@ -124,6 +157,43 @@ class CinemaController extends Controller
         }
     }
 
+    public function storeBranch(Request $request)
+    {
+        try {
+            $body = $request->all();
+            $validated = Validator::make($body, [
+                'name' => 'required|min:10',
+                'address' => 'required|min:10',
+                'region' => 'required|numeric|exists:regions,id',
+                'company' => 'required|numeric|exists:cinema_companies,id'
+            ]);
+
+            if ($validated->fails()) {
+                return back()->withErrors($validated->errors());
+            }
+
+            $code = SlugHelper::convertToSlug($body['name']);
+            CinemaBranch::create([
+                'name' => $body['name'],
+                'address' => $body['address'],
+                'region_id' => $body['region'],
+                'cinema_company_id' => $body['company'],
+                'code' => $code,
+                'latitude' => 0,
+                'longitude' => 0
+            ]);
+
+            return redirect()->route('cinemas.branches.index')->with('success', 'Create cinema branch successfully.');
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return redirect()->route('cinemas.branches.index')->with('error', 'An error occurred during create branch');
+        }
+    }
+
+    public function editBranch(Request $request)
+    {
+        //
+    }
     /**
      * Display the specified resource.
      */

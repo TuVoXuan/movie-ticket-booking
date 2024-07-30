@@ -39,6 +39,9 @@ Route::prefix('cinemas')->group(function () {
     Route::delete('/companies/{company}', [CinemaController::class, 'destroyCinema'])->name('cinema.companies.destroy');
 
     Route::get('/branches', [CinemaController::class, 'branches'])->name('cinemas.branches.index');
+    Route::get('/branches/create', [CinemaController::class, 'createBranch'])->name('cinemas.branches.create');
+    Route::post('/branches', [CinemaController::class, 'storeBranch'])->name('cinemas.branches.store');
+    Route::get('/branches/{branch}', [CinemaController::class, 'editBranch'])->name('cinemas.branches.edit');
 });
 
 Route::get('/roles', function () {

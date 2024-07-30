@@ -9,6 +9,8 @@ class CinemaBranch extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['name', 'address', 'region_id', 'cinema_company_id', 'latitude', 'longitude', 'code'];
+
     public function cinemaCompany()
     {
         return $this->belongsTo(CinemaCompany::class);
