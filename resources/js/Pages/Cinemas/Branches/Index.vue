@@ -82,7 +82,7 @@
 <script>
 import { Button, Table, Tooltip, Select } from 'ant-design-vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
-import { getQuery, convertSortOrder } from '../../../utils/utils';
+import { getQuery, convertSortOrder, removeEmptyFields } from '../../../utils/utils';
 import { router } from '@inertiajs/vue3';
 import { createVNode } from 'vue';
 import { debounce } from 'lodash';
@@ -172,13 +172,14 @@ export default {
       this.fetchCinemaBranches({
         page: pagination.current,
         page_size: pagination.pageSize,
-        sort: sorter.field,
+        sort: sorter.order ? sorter.field : '',
         sort_order: convertSortOrder(sorter.order)
       });
     },
     fetchCinemaBranches(params) {
       const query = getQuery();
-      router.get(route('cinemas.branches.index'), { ...query, ...params });
+      const newQuery = removeEmptyFields({ ...query, ...params });
+      router.get(route('cinemas.branches.index'), newQuery);
     },
     getSortOrder(key) {
       return this.sortInfo?.columnKey === key && this.sortInfo.order;

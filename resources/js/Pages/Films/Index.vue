@@ -75,7 +75,7 @@
 
 <script>
 import { Button, Table, Input, Modal, message, RangePicker, Tooltip } from 'ant-design-vue';
-import { convertSortOrder, getQuery } from '../../utils/utils';
+import { convertSortOrder, getQuery, removeEmptyFields } from '../../utils/utils';
 import { router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import dayjs from 'dayjs';
@@ -159,7 +159,8 @@ export default {
     },
     fetchFilms(params) {
       const query = getQuery();
-      router.get(route('films.index'), { ...query, ...params });
+      const newQuery = removeEmptyFields({ ...query, ...params })
+      router.get(route('films.index'), newQuery);
     },
     getSortOrder(key) {
       return this.sortInfo?.columnKey === key && this.sortInfo.order;
