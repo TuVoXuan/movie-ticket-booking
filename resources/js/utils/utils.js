@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { usePage } from "@inertiajs/vue3";
+import { CellType } from "../constant/enum";
 
 export function getQuery(){
   const page = usePage();
@@ -35,4 +36,20 @@ export function removeEmptyFields(obj) {
           value !== null && value !== undefined && value !== ''
       )
   );
+}
+
+export function generateGridObject(numRows = 0, numColumns = 0) {
+  const grid = {};
+
+  if (numRows <= 0 || numColumns <= 0) {
+    return grid;
+}
+  
+  // Generate row labels (A, B, C, ...)
+  for (let i = 0; i < numRows; i++) {
+      const rowLabel = String.fromCharCode(65 + i); // 65 is the ASCII value for 'A'
+      grid[rowLabel] = Array(numColumns).fill(CellType.Unset); // Create an array filled with zeros
+  }
+  
+  return grid;
 }

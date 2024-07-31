@@ -43,6 +43,10 @@
 
     <a-table :data-source="cinemaBranches.data" :columns="columns" :pagination="pagination" @change="handleTableChange">
       <template #bodyCell="{ column, record }">
+        <div v-if="column.key === 'name'">
+          <Link :href="route('cinemas.branches.auditoria.index', { branch: record.code })">{{ record.name }}</Link>
+        </div>
+
         <div v-if="column.key === 'region'">
           {{ record.region.name }}
         </div>

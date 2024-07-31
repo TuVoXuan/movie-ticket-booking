@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArtistController;
+use App\Http\Controllers\AuditoriumController;
 use App\Http\Controllers\CinemaController;
 use App\Http\Controllers\FilmController;
 use App\Http\Controllers\GenreController;
@@ -43,6 +44,9 @@ Route::prefix('cinemas')->group(function () {
     Route::post('/branches', [CinemaController::class, 'storeBranch'])->name('cinemas.branches.store');
     Route::get('/branches/{branch}/edit', [CinemaController::class, 'editBranch'])->name('cinemas.branches.edit');
     Route::put('/branches/{branch}', [CinemaController::class, 'updateBranch'])->name('cinemas.branches.update');
+
+    Route::get('/branches/{branch}/auditoria', [AuditoriumController::class, 'index'])->name('cinemas.branches.auditoria.index');
+    Route::get('/branches/{branch}/auditoria/create', [AuditoriumController::class, 'create'])->name('cinemas.branches.auditoria.create');
 });
 
 Route::get('/roles', function () {
