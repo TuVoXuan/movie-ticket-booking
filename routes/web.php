@@ -36,12 +36,13 @@ Route::prefix('cinemas')->group(function () {
     Route::get('/companies', [CinemaController::class, 'companies'])->name('cinemas.companies.index');
     Route::post('/companies', [CinemaController::class, 'storeCinema'])->name('cinemas.companies.store');
     Route::put('/companies/{company}', [CinemaController::class, 'updateCinema'])->name('cinemas.companies.update');
-    Route::delete('/companies/{company}', [CinemaController::class, 'destroyCinema'])->name('cinema.companies.destroy');
+    Route::delete('/companies/{company}', [CinemaController::class, 'destroyCinema'])->name('cinemas.companies.destroy');
 
     Route::get('/branches', [CinemaController::class, 'branches'])->name('cinemas.branches.index');
     Route::get('/branches/create', [CinemaController::class, 'createBranch'])->name('cinemas.branches.create');
     Route::post('/branches', [CinemaController::class, 'storeBranch'])->name('cinemas.branches.store');
-    Route::get('/branches/{branch}', [CinemaController::class, 'editBranch'])->name('cinemas.branches.edit');
+    Route::get('/branches/{branch}/edit', [CinemaController::class, 'editBranch'])->name('cinemas.branches.edit');
+    Route::put('/branches/{branch}', [CinemaController::class, 'updateBranch'])->name('cinemas.branches.update');
 });
 
 Route::get('/roles', function () {

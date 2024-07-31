@@ -41,7 +41,10 @@ import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { debounce } from 'lodash';
-import { reactive, onMounted, ref } from 'vue';
+import { reactive, onMounted, ref, toRefs, defineProps } from 'vue';
+
+const props = defineProps(['cinemaBranch']);
+const { cinemaBranch } = toRefs(props);
 
 const isSubmitting = ref(false);
 
@@ -61,7 +64,13 @@ const antConfig = (state) => ({
 });
 
 const { defineField, handleSubmit, errors, resetForm } = useForm({
-  validationSchema: schema
+  validationSchema: schema,
+  initialValues: {
+    name: cinemaBranch.value?.name,
+    address: cinemaBranch.value?.address,
+    region: cinemaBranch.value?.region && { value: cinemaBranch.value.region.id, label: cinemaBranch.value.region.name },
+    company: cinemaBranch.value?.cinema_company && { value: cinemaBranch.value.cinema_company.id, label: cinemaBranch.value.cinema_company.name }
+  }
 })
 
 const [name, nameProps] = defineField('name', antConfig);
@@ -77,7 +86,12 @@ const onSubmit = handleSubmit((values) => {
     region: values.region.value,
     company: values.company.value
   }
-  router.post(route('cinemas.branches.store'), body);
+
+  if (cinemaBranch.value) {
+    router.put(route('cinemas.branches.update', cinemaBranch.value.id), body);
+  } else {
+    router.post(route('cinemas.branches.store'), body);
+  }
 })
 
 const regionsOptions = reactive({

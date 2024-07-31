@@ -100,7 +100,7 @@ export default {
         content: createVNode('div', { class: 'text-red-500' }, "This action can't be undo."),
         onOk() {
 
-          router.delete(route('cinema.companies.destroy', id));
+          router.delete(route('cinemas.companies.destroy', id));
         },
         okButtonProps: {
           loading: this.loadingDelete

@@ -190,37 +190,57 @@ class CinemaController extends Controller
         }
     }
 
-    public function editBranch(Request $request)
+    public function editBranch(Request $request, string $branch)
     {
-        //
-    }
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
+        try {
+            $cinemaBranch = CinemaBranch::with(['region', 'cinemaCompany'])->where('code', '=', $branch)->first();
+            if (!$cinemaBranch) {
+                return redirect()->route('cinemas.branches.index')->with('error', 'Cinema Branch not found.');
+            }
+
+            return Inertia::render('Cinemas/Branches/CreateAndUpdate', ['cinemaBranch' => $cinemaBranch]);
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return redirect()->route('cinemas.branches.index')->with('error', 'An error occurred during get cinema branch.');
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function updateBranch(Request $request, string $id)
     {
-        //
+        try {
+            $body = $request->all();
+            Log::info($body);
+            $validated = Validator::make($body, [
+                'name' => 'required|min:10',
+                'address' => 'required|min:10',
+                'region' => 'required|numeric|exists:regions,id',
+                'company' => 'required|numeric|exists:cinema_companies,id'
+            ]);
+
+            if ($validated->fails()) {
+                return back()->withErrors($validated->errors());
+            }
+
+            $branch = CinemaBranch::find($id);
+            if (!$branch) {
+                return back()->with('error', 'Cinema Branch not found.');
+            }
+
+            $branch->update([
+                'name' => $body['name'],
+                'address' => $body['address'],
+                'region_id' => $body['region'],
+                'cinema_company_id' => $body['company'],
+                'code' => SlugHelper::convertToSlug($body['name'])
+            ]);
+
+            return redirect()->route('cinemas.branches.index')->with('success', 'Update cinema branch successfully.');
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return back()->with('error', 'An error occurred during update cinema branch.');
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroyCinema(string $id)
     {
         try {
