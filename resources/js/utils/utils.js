@@ -53,3 +53,23 @@ export function generateGridObject(numRows = 0, numColumns = 0) {
   
   return grid;
 }
+
+export function getRangeData(array) {
+  // Extract x and y values
+  const xValues = array.map(item => item.x);
+  const yValues = array.map(item => item.y);
+
+  // Get the minimum and maximum values
+  const xStart = Math.min(...xValues.map(x => x.charCodeAt(0)));
+  const xEnd = Math.max(...xValues.map(x => x.charCodeAt(0)));
+  const yStart = Math.min(...yValues);
+  const yEnd = Math.max(...yValues);
+
+  // Convert xStart and xEnd back to characters
+  return {
+    xStart: String.fromCharCode(xStart),
+    xEnd: String.fromCharCode(xEnd),
+    yStart,
+    yEnd
+  };
+}
