@@ -9,7 +9,7 @@
         <a-input-number class="w-full" size="large" v-model:value="capacity" :min="1" />
       </a-form-item>
       <a-form-item class="mb-0" label="Seat direction" v-bind="seatDirectionProps">
-        <a-select :disabled="isSubmitting" size="large" label-in-value v-model:value="seatDirection"
+        <a-select :disabled="isSubmitting" size="large" v-model:value="seatDirection"
           placeholder="Select seat direction" :options="seatDirectionOptions">
         </a-select>
       </a-form-item>
@@ -23,7 +23,7 @@
 
     <div v-show="rows && columns">
       <h2 class="text-xl font-medium text-center mb-4">Auditorium chair layout</h2>
-      <auditorium-layout :rows="rows" :columns="columns" />
+      <auditorium-layout :rows="rows" :columns="columns" :seat-direction="seatDirection" />
     </div>
 
     <a-button class="col-start-1 w-fit" type="primary" html-type="submit">Save</a-button>
@@ -55,13 +55,18 @@ const isSubmitting = ref(false);
 const schema = yup.object().shape({
   name: yup.string().min(1).required(),
   capacity: yup.number().min(0).required(),
-  seatDirection: yup.object().required(),
+  seatDirection: yup.string().required(),
   rows: yup.number().required(),
   columns: yup.number().required()
 })
 
 const { defineField, handleSubmit } = useForm({
-  validationSchema: schema
+  validationSchema: schema,
+  initialValues: {
+    seatDirection: 'LRT',
+    rows: 10,
+    columns: 10
+  }
 })
 
 const antConfig = (state) => ({

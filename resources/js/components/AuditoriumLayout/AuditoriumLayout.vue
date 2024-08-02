@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div ref="container">
     <div class="flex justify-center items-center gap-x-3 mb-4">
       <div class="flex flex-col gap-2">
         <label>Chair type</label>
@@ -16,9 +16,10 @@
       </div>
     </div>
 
-    <div class="grid gap-2" :style="{ 'grid-template-columns': `repeat(${columns + 1}, minmax(0, 1fr))` }">
-      <template v-for="n in columns">
-        <div class="h-10 text-sm" :class="{ 'col-start-2': n === 1 }">
+    <div class="flex flex-col gap-2 mb-4 overflow-x-auto relative">
+      <div ref="columnsIndex" class="flex gap-2 m-auto" :class="{ 'flex-row-reverse': seatDirection === 'RTL' }">
+        <div class="w-10 h-10 bg-white shrink-0 sticky left-0 z-[1]"></div>
+        <div class="text-sm" v-for="n in columns">
           <a-popover title="Actions">
             <template #content>
               <div class="flex gap-x-3">
@@ -27,23 +28,24 @@
                 <a-button @click="handleChangeColumType(n - 1, CellType.Aisle)">Mark as aisle</a-button>
               </div>
             </template>
-            <a-button class="w-full" type="primary">{{ n }}</a-button>
+            <a-button class="w-10 h-10 shadow-none p-2" type="primary">{{ n }}</a-button>
           </a-popover>
         </div>
-      </template>
-    </div>
-    <div class="grid gap-2 mb-4" :style="{ 'grid-template-columns': `repeat(${columns + 1}, minmax(0, 1fr))` }">
-      <template v-for="(row, rowLabel) in gridLayout">
-        <div class="content-center text-center">{{ rowLabel }}</div>
+      </div>
+
+      <div v-for="(row, rowLabel) in gridLayout" class="flex gap-2 m-auto"
+        :class="{ 'flex-row-reverse': seatDirection === 'RTL' }">
+        <div class="sticky left-0 bg-white w-10 flex-shrink-0 content-center text-center">{{ rowLabel }}</div>
         <button v-for="(cell, index) in row"
-          class="border-[1px] rounded-md p-2 text-sm h-10 cursor-pointer transition-all ease-linear hover:border-blue-300"
+          class="flex-shrink-0 border-[1px] rounded-md p-2 text-sm h-10 w-10 cursor-pointer transition-all ease-linear hover:border-blue-300"
           :class="getCellClass(cell.type)" @click="handleClickCell(rowLabel, index)"
           :disabled="cell.type === CellType.Aisle">
           {{ cell.seatLabel }}
         </button>
-      </template>
+      </div>
     </div>
   </div>
+
   <div class="flex justify-center mt-4 gap-x-3">
     <div class="flex items-center gap-x-2">
       <span class="h-5 w-5 rounded-md bg-purple-200"></span>
@@ -64,7 +66,7 @@
 import { Button, Popover, Select, Segmented } from 'ant-design-vue';
 import { generateGridObject, getRangeData } from '../../utils/utils';
 import { CellType } from '../../constant/enum';
-import { CodeSandboxCircleFilled } from '@ant-design/icons-vue';
+
 export default {
   name: 'AuditoriumLayout',
   components: {
@@ -73,7 +75,7 @@ export default {
     Select,
     Segmented
   },
-  props: ['rows', 'columns'],
+  props: ['rows', 'columns', 'seatDirection'],
   data() {
     const chairTypeOptions = [
       {
@@ -98,11 +100,17 @@ export default {
     }
   },
   watch: {
-    rows(newVal, oldVal) {
-      this.gridLayout = generateGridObject(newVal, this.columns);
+    rows: {
+      handler(newVal, oldVal) {
+        this.gridLayout = generateGridObject(newVal, this.columns);
+      },
+      immediate: true
     },
-    columns(newVal, oldVal) {
-      this.gridLayout = generateGridObject(this.rows, newVal);
+    columns: {
+      handler(newVal, oldVal) {
+        this.gridLayout = generateGridObject(this.rows, newVal);
+      },
+      immediate: true
     }
   },
   methods: {
@@ -202,6 +210,6 @@ export default {
         'border-blue-400 shadow-md bg-white': cellType === CellType.MultiSelect
       };
     },
-  }
+  },
 }
 </script>
