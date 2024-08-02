@@ -23,7 +23,7 @@
 
     <div v-show="rows && columns">
       <h2 class="text-xl font-medium text-center mb-4">Auditorium chair layout</h2>
-      <auditorium-layout :rows="rows" :columns="columns" :seat-direction="seatDirection" />
+      <auditorium-layout :rows="rows" :columns="columns" :seat-direction="seatDirection" :capacity="capacity" />
     </div>
 
     <a-button class="col-start-1 w-fit" type="primary" html-type="submit">Save</a-button>

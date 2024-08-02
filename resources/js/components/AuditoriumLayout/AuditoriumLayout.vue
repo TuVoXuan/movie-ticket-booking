@@ -16,6 +16,10 @@
       </div>
     </div>
 
+    <div class="flex justify-center mb-4">
+      Number of seats : {{ seatCount }}/{{ capacity }}
+    </div>
+
     <div class="flex flex-col gap-2 mb-4 overflow-x-auto relative">
       <div ref="columnsIndex" class="flex gap-2 m-auto" :class="{ 'flex-row-reverse': seatDirection === 'RTL' }">
         <div class="w-10 h-10 bg-white shrink-0 sticky left-0 z-[1]"></div>
@@ -63,7 +67,7 @@
 </template>
 
 <script>
-import { Button, Popover, Select, Segmented } from 'ant-design-vue';
+import { Button, Popover, Select, Segmented, notification } from 'ant-design-vue';
 import { generateGridObject, getRangeData } from '../../utils/utils';
 import { CellType } from '../../constant/enum';
 
@@ -75,7 +79,7 @@ export default {
     Select,
     Segmented
   },
-  props: ['rows', 'columns', 'seatDirection'],
+  props: ['rows', 'columns', 'seatDirection', 'capacity'],
   data() {
     const chairTypeOptions = [
       {
@@ -85,6 +89,10 @@ export default {
       {
         value: CellType.SeatVIP,
         label: 'Ghế VIP'
+      },
+      {
+        value: CellType.Unset,
+        label: 'Trống'
       }
     ];
     const selectModeOptions = ['Single', 'Multiple'];
@@ -97,6 +105,20 @@ export default {
       chairType: chairTypeOptions[0].value,
       gridLayout: {},
       multiCellSelected: []
+    }
+  },
+  computed: {
+    seatCount() {
+      let count = 0;
+      for (const key in this.gridLayout) {
+        this.gridLayout[key].forEach(cell => {
+          const seatType = [CellType.SeatNormal, CellType.SeatVIP];
+          if (seatType.includes(cell.type)) {
+            count++;
+          }
+        });
+      }
+      return count;
     }
   },
   watch: {
@@ -126,6 +148,14 @@ export default {
     },
     handleClickCell(positionX, positionY) {
       if (this.selectMode == 'Single') {
+        if (this.seatCount + 1 > this.capacity) {
+          notification['warning']({
+            message: 'Exceed Capacity',
+            description: 'You can not add new seat because it is full of capacity'
+          })
+          return;
+        }
+
         const shouldUpdateCellLabel = this.needUpdateCellLabel(positionX, positionY, this.chairType);
         this.handleChangeCellType(positionX, positionY, this.chairType, true);
         if (shouldUpdateCellLabel) {
@@ -148,24 +178,42 @@ export default {
       }
     },
     handleChangeMultipleCellType() {
+      const numOfNewSeats = this.countNewSeatWillBeAdd();
+      if (this.seatCount + numOfNewSeats > this.capacity) {
+        notification['warning']({
+          message: 'Exceed Capacity',
+          description: 'You can not add new seat because it is full of capacity'
+        })
+        this.multiCellSelected.forEach((cell) => this.handleChangeCellType(cell.x, cell.y, CellType.Unset))
+        return;
+      }
+
       const { xEnd, xStart, yEnd, yStart } = getRangeData(this.multiCellSelected);
+      const rowsShouldUpdateCellLabel = [];
+
       for (const key in this.gridLayout) {
         if (key.charCodeAt(0) >= xStart.charCodeAt(0) && key.charCodeAt(0) <= xEnd.charCodeAt(0)) {
           let shouldUpdateLabelRow = false;
+
           for (let i = 0; i < this.gridLayout[key].length; i++) {
             if (i >= yStart && i <= yEnd) {
               if (this.gridLayout[key][i].type !== CellType.Aisle) {
-                const canUpdateCellLabel = !shouldUpdateLabelRow && this.needUpdateCellLabel(key, i, this.chairType)
-                this.handleChangeCellType(key, i, this.chairType);
-                if (canUpdateCellLabel) {
-                  this.handleMarkLabelForCell(key);
+                if (!shouldUpdateLabelRow) {
                   shouldUpdateLabelRow = this.needUpdateCellLabel(key, i, this.chairType);
                 }
+
+                this.handleChangeCellType(key, i, this.chairType);
               }
             }
           }
+
+          if (shouldUpdateLabelRow) {
+            rowsShouldUpdateCellLabel.push(key);
+          }
         }
       }
+
+      rowsShouldUpdateCellLabel.forEach((row) => this.handleMarkLabelForCell(row));
     },
     handleChangeCellType(positionX, positionY, cellType, toggle) {
       if (this.gridLayout[positionX][positionY].type === cellType && toggle) {
@@ -175,7 +223,6 @@ export default {
       }
     },
     handleMarkLabelForCell(row) {
-      console.log('vo');
       let seatNumber = 0;
       for (let i = 0; i < this.gridLayout[row].length; i++) {
         const curCell = this.gridLayout[row][i]
@@ -195,12 +242,30 @@ export default {
 
       if (
         (aisleUnset.includes(currCellType) && seatTypes.includes(type)) ||
-        (seatTypes.includes(currCellType) && aisleUnset.includes(type))
+        (seatTypes.includes(currCellType) && aisleUnset.includes(type)) ||
+        currCellType === type
       ) {
         return true
       }
 
       return false;
+    },
+    countNewSeatWillBeAdd() {
+      const { xEnd, xStart, yEnd, yStart } = getRangeData(this.multiCellSelected);
+      let count = 0;
+      for (const key in this.gridLayout) {
+        if (key.charCodeAt(0) >= xStart.charCodeAt(0) && key.charCodeAt(0) <= xEnd.charCodeAt(0)) {
+          for (let i = 0; i < this.gridLayout[key].length; i++) {
+            if (i >= yStart && i <= yEnd) {
+              if (this.gridLayout[key][i].type === CellType.Unset) {
+                count++;
+              }
+            }
+          }
+        }
+      }
+
+      return count;
     },
     getCellClass(cellType) {
       return {
