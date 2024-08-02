@@ -35,12 +35,27 @@
     <div class="grid gap-2 mb-4" :style="{ 'grid-template-columns': `repeat(${columns + 1}, minmax(0, 1fr))` }">
       <template v-for="(row, rowLabel) in gridLayout">
         <div class="content-center text-center">{{ rowLabel }}</div>
-        <button v-for="(cellType, index) in row"
+        <button v-for="(cell, index) in row"
           class="border-[1px] rounded-md p-2 text-sm h-10 cursor-pointer transition-all ease-linear hover:border-blue-300"
-          :class="getCellClass(cellType)" @click="handleClickCell(rowLabel, index)"
-          :disabled="cellType === CellType.Aisle">
+          :class="getCellClass(cell.type)" @click="handleClickCell(rowLabel, index)"
+          :disabled="cell.type === CellType.Aisle">
+          {{ cell.seatLabel }}
         </button>
       </template>
+    </div>
+  </div>
+  <div class="flex justify-center mt-4 gap-x-3">
+    <div class="flex items-center gap-x-2">
+      <span class="h-5 w-5 rounded-md bg-purple-200"></span>
+      <span>Ghế thường</span>
+    </div>
+    <div class="flex items-center gap-x-2">
+      <span class="h-5 w-5 rounded-md bg-pink-200"></span>
+      <span>Ghế VIP</span>
+    </div>
+    <div class="flex items-center gap-x-2">
+      <span class="h-5 w-5 rounded-md bg-slate-300"></span>
+      <span>Lối đi</span>
     </div>
   </div>
 </template>
@@ -49,6 +64,7 @@
 import { Button, Popover, Select, Segmented } from 'ant-design-vue';
 import { generateGridObject, getRangeData } from '../../utils/utils';
 import { CellType } from '../../constant/enum';
+import { CodeSandboxCircleFilled } from '@ant-design/icons-vue';
 export default {
   name: 'AuditoriumLayout',
   components: {
@@ -92,14 +108,22 @@ export default {
   methods: {
     handleChangeColumType(index, cellType) {
       for (const row in this.gridLayout) {
-        this.handleChangeCellType(row, index, cellType);
+        const shouldUpdateCellLabel = this.needUpdateCellLabel(row, index, cellType)
+
+        this.handleChangeCellType(row, index, cellType, true);
+        if (shouldUpdateCellLabel) {
+          this.handleMarkLabelForCell(row);
+        }
       }
     },
     handleClickCell(positionX, positionY) {
       if (this.selectMode == 'Single') {
-        this.handleChangeCellType(positionX, positionY, this.chairType);
+        const shouldUpdateCellLabel = this.needUpdateCellLabel(positionX, positionY, this.chairType);
+        this.handleChangeCellType(positionX, positionY, this.chairType, true);
+        if (shouldUpdateCellLabel) {
+          this.handleMarkLabelForCell(positionX);
+        }
       } else {
-        console.log('vo');
         if (this.multiCellSelected.length < 2) {
           this.multiCellSelected.push({
             x: positionX,
@@ -119,21 +143,61 @@ export default {
       const { xEnd, xStart, yEnd, yStart } = getRangeData(this.multiCellSelected);
       for (const key in this.gridLayout) {
         if (key.charCodeAt(0) >= xStart.charCodeAt(0) && key.charCodeAt(0) <= xEnd.charCodeAt(0)) {
+          let shouldUpdateLabelRow = false;
           for (let i = 0; i < this.gridLayout[key].length; i++) {
             if (i >= yStart && i <= yEnd) {
-              this.handleChangeCellType(key, i, this.chairType);
+              if (this.gridLayout[key][i].type !== CellType.Aisle) {
+                const canUpdateCellLabel = !shouldUpdateLabelRow && this.needUpdateCellLabel(key, i, this.chairType)
+                this.handleChangeCellType(key, i, this.chairType);
+                if (canUpdateCellLabel) {
+                  this.handleMarkLabelForCell(key);
+                  shouldUpdateLabelRow = this.needUpdateCellLabel(key, i, this.chairType);
+                }
+              }
             }
           }
         }
       }
     },
-    handleChangeCellType(positionX, positionY, cellType) {
-      this.gridLayout[positionX][positionY] = cellType;
+    handleChangeCellType(positionX, positionY, cellType, toggle) {
+      if (this.gridLayout[positionX][positionY].type === cellType && toggle) {
+        this.gridLayout[positionX][positionY].type = CellType.Unset;
+      } else {
+        this.gridLayout[positionX][positionY].type = cellType;
+      }
+    },
+    handleMarkLabelForCell(row) {
+      console.log('vo');
+      let seatNumber = 0;
+      for (let i = 0; i < this.gridLayout[row].length; i++) {
+        const curCell = this.gridLayout[row][i]
+        if (curCell.type === CellType.SeatNormal || curCell.type === CellType.SeatVIP) {
+          seatNumber++;
+          curCell.seatLabel = `${row}${seatNumber}`;
+        } else {
+          curCell.seatLabel = null;
+        }
+      }
+    },
+    needUpdateCellLabel(positionX, positionY, type) {
+      const currCellType = this.gridLayout[positionX][positionY].type;
+
+      const aisleUnset = [CellType.Aisle, CellType.Unset, CellType.MultiSelect];
+      const seatTypes = [CellType.SeatNormal, CellType.SeatVIP];
+
+      if (
+        (aisleUnset.includes(currCellType) && seatTypes.includes(type)) ||
+        (seatTypes.includes(currCellType) && aisleUnset.includes(type))
+      ) {
+        return true
+      }
+
+      return false;
     },
     getCellClass(cellType) {
       return {
-        'bg-purple-300': cellType === CellType.SeatNormal,
-        'bg-pink-300': cellType === CellType.SeatVIP,
+        'bg-purple-200 text-purple-500 font-medium': cellType === CellType.SeatNormal,
+        'bg-pink-200 text-pink-500 font-medium': cellType === CellType.SeatVIP,
         'bg-slate-300 cursor-default': cellType === CellType.Aisle,
         'border-blue-400 shadow-md bg-white': cellType === CellType.MultiSelect
       };

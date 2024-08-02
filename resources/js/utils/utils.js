@@ -43,12 +43,15 @@ export function generateGridObject(numRows = 0, numColumns = 0) {
 
   if (numRows <= 0 || numColumns <= 0) {
     return grid;
-}
+  }
   
   // Generate row labels (A, B, C, ...)
   for (let i = 0; i < numRows; i++) {
       const rowLabel = String.fromCharCode(65 + i); // 65 is the ASCII value for 'A'
-      grid[rowLabel] = Array(numColumns).fill(CellType.Unset); // Create an array filled with zeros
+      grid[rowLabel] = Array.from({ length: numColumns }, () => ({
+        seatLabel: null,
+        type: CellType.Unset
+      })); // Create an array filled with zeros
   }
   
   return grid;
