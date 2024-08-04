@@ -21,7 +21,7 @@
       </a-form-item>
     </a-form>
 
-    <div v-show="rows && columns">
+    <div v-show="isEmpty(errors) && columns && rows && capacity && seatDirection">
       <h2 class="text-xl font-medium text-center mb-4">Auditorium chair layout</h2>
       <auditorium-layout ref="auditoriumLayout" :rows="rows" :columns="columns" :seat-direction="seatDirection"
         :capacity="capacity" />
@@ -38,6 +38,7 @@ import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
 import { ref, } from 'vue';
 import AuditoriumLayout from '../../../components/AuditoriumLayout/AuditoriumLayout.vue';
+import { isEmpty } from 'lodash';
 
 const auditoriumLayout = ref(null);
 
@@ -55,19 +56,21 @@ const isSubmitting = ref(false);
 
 const schema = yup.object().shape({
   name: yup.string().min(1).required(),
-  capacity: yup.number().min(0).required(),
+  capacity: yup.number().min(0).required()
+    .when(['rows', 'columns'], ([rows, columns], schema) => {
+      if (rows && columns) {
+        const max = rows * columns;
+        return yup.number().max(max).required();
+      }
+      return yup.number().nullable();
+    }),
   seatDirection: yup.string().required(),
   rows: yup.number().required(),
   columns: yup.number().required()
 })
 
-const { defineField, handleSubmit } = useForm({
+const { defineField, handleSubmit, errors } = useForm({
   validationSchema: schema,
-  initialValues: {
-    seatDirection: 'LRT',
-    rows: 10,
-    columns: 10
-  }
 })
 
 const antConfig = (state) => ({
