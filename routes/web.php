@@ -48,6 +48,7 @@ Route::prefix('cinemas')->group(function () {
     Route::get('/branches/{branch}/auditoria', [AuditoriumController::class, 'index'])->name('cinemas.branches.auditoria.index');
     Route::get('/branches/{branch}/auditoria/create', [AuditoriumController::class, 'create'])->name('cinemas.branches.auditoria.create');
     Route::post('/branches/{branch}/auditoria', [AuditoriumController::class, 'store'])->name('cinemas.branches.auditoria.store');
+    Route::get('/branches/{branch}/auditoria/{auditorium}', [AuditoriumController::class, 'edit'])->name('cinemas.branches.auditoria.edit');
 });
 
 Route::get('/roles', function () {

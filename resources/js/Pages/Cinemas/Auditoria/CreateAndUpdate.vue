@@ -36,10 +36,11 @@ import { Button, Input, Select, Form, FormItem, InputNumber, SelectOption, notif
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
-import { ref, } from 'vue';
+import { ref, defineProps } from 'vue';
 import AuditoriumLayout from '../../../components/AuditoriumLayout/AuditoriumLayout.vue';
 import { isEmpty } from 'lodash';
 
+const props = defineProps(['auditorium']);
 const auditoriumLayout = ref(null);
 
 const seatDirectionOptions = ref([

@@ -74,8 +74,8 @@ class AuditoriumController extends Controller
                             'auditorium_id' => $auditorium->id,
                             'label' => $colValue['seatLabel'],
                             'seat_type' => $colValue['type'],
-                            'x_position' => $rowKey,
-                            'y_position' => $colKey
+                            'x_position' => $colKey,
+                            'y_position' => $rowKey
                         ]);
                     }
                 }
@@ -85,6 +85,36 @@ class AuditoriumController extends Controller
         } catch (\Throwable $th) {
             Log::error($th);
             return redirect()->route('cinemas.branches.auditoria.create', ['branch' => $branch])->with('error', 'An error occurred during store auditorium.');
+        }
+    }
+
+    public function edit(Request $request, string $branch, string $auditorium)
+    {
+        try {
+            $auditorium = Auditorium::whereHas('cinemaBranch', function ($query) use ($branch) {
+                $query->where('code', '=', $branch);
+            })->where('code', '=', $auditorium)->first();
+
+
+            $seatingArrangements = SeatingArrangement::where('auditorium_id', '=', $auditorium->id)
+                ->get()->groupBy('y_position')
+                ->map(function ($group) {
+                    return $group->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'label' => $item->label,
+                            'seat_type' => $item->seat_type,
+                            'x_position' => $item->x_position,
+                        ];
+                    });
+                });
+
+            $auditoriumArray = $auditorium->toArray();
+            $auditoriumArray['seating_arrangements'] = $seatingArrangements;
+            return Inertia::render('Cinemas/Auditoria/CreateAndUpdate', ['auditorium' => $auditoriumArray]);
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return redirect()->route('cinemas.branches.auditoria.index', ['branch' => $branch])->with('error', 'An error occurred during get auditorium.');
         }
     }
 }
