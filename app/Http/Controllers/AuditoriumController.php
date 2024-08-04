@@ -15,9 +15,17 @@ use Inertia\Inertia;
 
 class AuditoriumController extends Controller
 {
-    public function index()
+    public function index(Request $request, string $branch)
     {
-        return Inertia::render('Cinemas/Auditoria/Index');
+        $cinemaBranch = CinemaBranch::where('code', '=', $branch)->first();
+
+        if (!$cinemaBranch) {
+            return Inertia::render('Cinemas/Auditoria/Index', ['auditoria' => null])->with('error', 'Cinema branch not found');
+        }
+
+        $auditoria = Auditorium::where('cinema_branch_id', '=', $cinemaBranch->id)->get();
+
+        return Inertia::render('Cinemas/Auditoria/Index', ['auditoria' => $auditoria]);
     }
 
     public function create()
@@ -61,7 +69,6 @@ class AuditoriumController extends Controller
             $gridLayout = $body['grid_layout'];
             foreach ($gridLayout as $rowKey => $rowVal) {
                 foreach ($rowVal as $colKey => $colValue) {
-                    Log::info($colValue);
                     if ($colValue['type'] !== SeatType::Unset->value) {
                         SeatingArrangement::create([
                             'auditorium_id' => $auditorium->id,

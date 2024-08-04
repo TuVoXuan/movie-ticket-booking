@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { Button, Input, Select, Form, FormItem, InputNumber, SelectOption } from 'ant-design-vue';
+import { Button, Input, Select, Form, FormItem, InputNumber, SelectOption, notification } from 'ant-design-vue';
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
@@ -98,6 +98,13 @@ const [rows, rowsProps] = defineField('rows', antConfig);
 const [columns, columnsProps] = defineField('columns', antConfig);
 
 const onSubmit = handleSubmit((values) => {
+  if (auditoriumLayout.value.seatCount < values.capacity) {
+    notification['warning']({
+      message: 'Does not fill out enough seat',
+      description: 'You must fill out the seat equal with the capacity in the form'
+    })
+    return;
+  }
   const body = {
     name: values.name,
     capacity: values.capacity,
