@@ -9,6 +9,8 @@ class SeatingArrangement extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['auditorium_id', 'label', 'seat_type', 'x_position', 'y_position'];
+
     public function auditorium()
     {
         return $this->belongsTo(Auditorium::class);

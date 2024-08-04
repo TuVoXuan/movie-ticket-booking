@@ -1,7 +1,7 @@
 <template>
   <Box>
     <h1 class="text-2xl font-medium text-center mb-4">Create New Auditorium</h1>
-    <a-form layout="vertical" @submit.prevent="onSubmit" class="grid grid-cols-2 gap-3 mb-4">
+    <a-form id="auditoriumForm" layout="vertical" @submit.prevent="onSubmit" class="grid grid-cols-2 gap-3 mb-4">
       <a-form-item class="mb-0" label="Name" v-bind="nameProps">
         <a-input size="large" v-model:value="name" />
       </a-form-item>
@@ -23,11 +23,11 @@
 
     <div v-show="rows && columns">
       <h2 class="text-xl font-medium text-center mb-4">Auditorium chair layout</h2>
-      <auditorium-layout :rows="rows" :columns="columns" :seat-direction="seatDirection" :capacity="capacity" />
+      <auditorium-layout ref="auditoriumLayout" :rows="rows" :columns="columns" :seat-direction="seatDirection"
+        :capacity="capacity" />
     </div>
 
-    <a-button class="col-start-1 w-fit" type="primary" html-type="submit">Save</a-button>
-
+    <a-button class="col-start-1 w-fit" form="auditoriumForm" type="primary" html-type="submit">Save</a-button>
   </Box>
 </template>
 
@@ -36,9 +36,10 @@ import { Button, Input, Select, Form, FormItem, InputNumber, SelectOption } from
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
-import { generateGridObject } from '../../../utils/utils';
+import { ref, } from 'vue';
 import AuditoriumLayout from '../../../components/AuditoriumLayout/AuditoriumLayout.vue';
+
+const auditoriumLayout = ref(null);
 
 const seatDirectionOptions = ref([
   {
@@ -83,10 +84,17 @@ const [seatDirection, seatDirectionProps] = defineField('seatDirection', antConf
 const [rows, rowsProps] = defineField('rows', antConfig);
 const [columns, columnsProps] = defineField('columns', antConfig);
 
-const gridLayout = computed(() => generateGridObject(rows.value, columns.value));
+const onSubmit = handleSubmit((values) => {
+  const body = {
+    name: values.name,
+    capacity: values.capacity,
+    seat_direction: values.seatDirection,
+    rows: values.rows,
+    columns: values.columns,
+    grid_layout: auditoriumLayout.value.gridLayout
+  }
 
-const onSubmit = handleSubmit((value) => {
-  console.log("value: ", value);
+  router.post(route('cinemas.branches.auditoria.store', route().params), body);
 })
 
 

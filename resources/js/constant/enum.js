@@ -1,7 +1,7 @@
 export const CellType = {
-  Unset: 0,
-  Aisle: 1,
-  SeatNormal: 2,
-  SeatVIP:3,
-  MultiSelect: 4
+  Unset: 'unset',
+  Aisle: 'aisle',
+  SeatNormal: 'seat_normal',
+  SeatVIP: 'seat_vip',
+  MultiSelect: 'multi_select'
 }

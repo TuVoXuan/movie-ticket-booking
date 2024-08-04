@@ -9,6 +9,8 @@ class Auditorium extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['cinema_branch_id', 'name', 'capacity', 'seat_direction', 'code', 'rows', 'columns'];
+
     public function cinemaBranch()
     {
         return $this->belongsTo(CinemaBranch::class);

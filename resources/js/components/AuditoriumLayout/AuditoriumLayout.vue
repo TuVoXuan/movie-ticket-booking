@@ -80,6 +80,7 @@ export default {
     Segmented
   },
   props: ['rows', 'columns', 'seatDirection', 'capacity'],
+  expose: ['gridLayout'],
   data() {
     const chairTypeOptions = [
       {
