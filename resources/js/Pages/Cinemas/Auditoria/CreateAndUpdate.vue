@@ -65,9 +65,19 @@ const schema = yup.object().shape({
       return yup.number().nullable();
     }),
   seatDirection: yup.string().required(),
-  rows: yup.number().required(),
-  columns: yup.number().required()
-})
+  rows: yup.number().min(1).max(26).required(),
+  columns: yup.number().required().when(['capacity', 'rows'], ([capacity, rows], schema) => {
+    if (capacity && rows) {
+      const maxColumns = capacity / rows + 2;
+      return yup.number().max(maxColumns).required();
+    }
+    return yup.number().required();
+  })
+},
+  [
+    ['capacity', 'columns']
+  ]
+)
 
 const { defineField, handleSubmit, errors } = useForm({
   validationSchema: schema,
