@@ -24,7 +24,7 @@
     <div v-show="isEmpty(errors) && columns && rows && capacity && seatDirection">
       <h2 class="text-xl font-medium text-center mb-4">Auditorium chair layout</h2>
       <auditorium-layout ref="auditoriumLayout" :rows="rows" :columns="columns" :seat-direction="seatDirection"
-        :capacity="capacity" />
+        :capacity="capacity" :default-grid-layout="auditorium?.seating_arrangements" />
     </div>
 
     <a-button class="col-start-1 w-fit" form="auditoriumForm" type="primary" html-type="submit">Save</a-button>
@@ -36,11 +36,13 @@ import { Button, Input, Select, Form, FormItem, InputNumber, SelectOption, notif
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
-import { ref, defineProps } from 'vue';
+import { ref, defineProps, toRefs } from 'vue';
 import AuditoriumLayout from '../../../components/AuditoriumLayout/AuditoriumLayout.vue';
 import { isEmpty } from 'lodash';
 
 const props = defineProps(['auditorium']);
+const { auditorium } = toRefs(props);
+
 const auditoriumLayout = ref(null);
 
 const seatDirectionOptions = ref([
@@ -82,6 +84,13 @@ const schema = yup.object().shape({
 
 const { defineField, handleSubmit, errors } = useForm({
   validationSchema: schema,
+  initialValues: {
+    name: auditorium.value?.name,
+    capacity: auditorium.value?.capacity,
+    seatDirection: auditorium.value?.seat_direction,
+    rows: auditorium.value?.rows,
+    columns: auditorium.value?.columns
+  }
 })
 
 const antConfig = (state) => ({

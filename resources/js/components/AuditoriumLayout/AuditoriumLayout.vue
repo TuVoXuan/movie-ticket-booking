@@ -42,7 +42,7 @@
         <div class="sticky left-0 bg-white w-10 flex-shrink-0 content-center text-center">{{ rowLabel }}</div>
         <button v-for="(cell, index) in row"
           class="flex-shrink-0 border-[1px] rounded-md p-2 text-sm h-10 w-10 cursor-pointer transition-all ease-linear hover:border-blue-300"
-          :class="getCellClass(cell.type)" @click="handleClickCell(rowLabel, index)"
+          :class="getCellClass(cell.type)" @click="handleClickCell(index, rowLabel)"
           :disabled="cell.type === CellType.Aisle">
           {{ cell.seatLabel }}
         </button>
@@ -79,7 +79,7 @@ export default {
     Select,
     Segmented
   },
-  props: ['rows', 'columns', 'seatDirection', 'capacity'],
+  props: ['rows', 'columns', 'seatDirection', 'capacity', 'defaultGridLayout'],
   expose: ['gridLayout', 'seatCount'],
   data() {
     const chairTypeOptions = [
@@ -105,7 +105,8 @@ export default {
       selectMode: selectModeOptions[0],
       chairType: chairTypeOptions[0].value,
       gridLayout: {},
-      multiCellSelected: []
+      multiCellSelected: [],
+      gridLayoutOrigin: {}
     }
   },
   computed: {
@@ -134,14 +135,35 @@ export default {
         this.gridLayout = generateGridObject(this.rows, newVal);
       },
       immediate: true
+    },
+    defaultGridLayout: {
+      handler(newVal, oldVal) {
+        if (newVal) {
+          for (const key in this.gridLayout) {
+            for (let index = 0; index < this.gridLayout[key].length; index++) {
+              const existCell = newVal[key].find((cell) => cell.x_position === index);
+              if (existCell) {
+                this.gridLayout[key][index] = {
+                  id: existCell.id,
+                  seatLabel: existCell.label,
+                  type: existCell.seat_type
+                }
+              }
+            }
+          }
+
+          this.gridLayoutOrigin = JSON.parse(JSON.stringify(this.gridLayout));
+        }
+      },
+      immediate: true
     }
   },
   methods: {
     handleChangeColumType(index, cellType) {
       for (const row in this.gridLayout) {
-        const shouldUpdateCellLabel = this.needUpdateCellLabel(row, index, cellType)
+        const shouldUpdateCellLabel = this.needUpdateCellLabel(index, row, cellType)
 
-        this.handleChangeCellType(row, index, cellType, true);
+        this.handleChangeCellType(index, row, cellType, true);
         if (shouldUpdateCellLabel) {
           this.handleMarkLabelForCell(row);
         }
@@ -149,7 +171,9 @@ export default {
     },
     handleClickCell(positionX, positionY) {
       if (this.selectMode == 'Single') {
-        if (this.seatCount + 1 > this.capacity) {
+        const currCell = this.gridLayout[positionY][positionX];
+
+        if (this.seatCount + 1 > this.capacity && currCell.type === CellType.Unset) {
           notification['warning']({
             message: 'Exceed Capacity',
             description: 'You can not add new seat because it is full of capacity'
@@ -160,13 +184,15 @@ export default {
         const shouldUpdateCellLabel = this.needUpdateCellLabel(positionX, positionY, this.chairType);
         this.handleChangeCellType(positionX, positionY, this.chairType, true);
         if (shouldUpdateCellLabel) {
-          this.handleMarkLabelForCell(positionX);
+          this.handleMarkLabelForCell(positionY);
         }
       } else {
         if (this.multiCellSelected.length < 2) {
+          const curCell = this.gridLayout[positionY][positionX];
           this.multiCellSelected.push({
             x: positionX,
-            y: positionY
+            y: positionY,
+            originType: curCell.type
           });
 
           this.handleChangeCellType(positionX, positionY, CellType.MultiSelect);
@@ -180,12 +206,12 @@ export default {
     },
     handleChangeMultipleCellType() {
       const numOfNewSeats = this.countNewSeatWillBeAdd();
-      if (this.seatCount + numOfNewSeats > this.capacity) {
+      if (this.seatCount + numOfNewSeats > this.capacity && this.chairType !== CellType.Unset) {
         notification['warning']({
           message: 'Exceed Capacity',
           description: 'You can not add new seat because it is full of capacity'
         })
-        this.multiCellSelected.forEach((cell) => this.handleChangeCellType(cell.x, cell.y, CellType.Unset))
+        this.multiCellSelected.forEach((cell) => this.handleChangeCellType(cell.x, cell.y, cell.originType))
         return;
       }
 
@@ -193,17 +219,17 @@ export default {
       const rowsShouldUpdateCellLabel = [];
 
       for (const key in this.gridLayout) {
-        if (key.charCodeAt(0) >= xStart.charCodeAt(0) && key.charCodeAt(0) <= xEnd.charCodeAt(0)) {
+        if (key.charCodeAt(0) >= yStart.charCodeAt(0) && key.charCodeAt(0) <= yEnd.charCodeAt(0)) {
           let shouldUpdateLabelRow = false;
 
           for (let i = 0; i < this.gridLayout[key].length; i++) {
-            if (i >= yStart && i <= yEnd) {
+            if (i >= xStart && i <= xEnd) {
               if (this.gridLayout[key][i].type !== CellType.Aisle) {
                 if (!shouldUpdateLabelRow) {
-                  shouldUpdateLabelRow = this.needUpdateCellLabel(key, i, this.chairType);
+                  shouldUpdateLabelRow = this.needUpdateCellLabel(i, key, this.chairType);
                 }
 
-                this.handleChangeCellType(key, i, this.chairType);
+                this.handleChangeCellType(i, key, this.chairType);
               }
             }
           }
@@ -217,10 +243,10 @@ export default {
       rowsShouldUpdateCellLabel.forEach((row) => this.handleMarkLabelForCell(row));
     },
     handleChangeCellType(positionX, positionY, cellType, toggle) {
-      if (this.gridLayout[positionX][positionY].type === cellType && toggle) {
-        this.gridLayout[positionX][positionY].type = CellType.Unset;
+      if (this.gridLayout[positionY][positionX].type === cellType && toggle) {
+        this.gridLayout[positionY][positionX].type = CellType.Unset;
       } else {
-        this.gridLayout[positionX][positionY].type = cellType;
+        this.gridLayout[positionY][positionX].type = cellType;
       }
     },
     handleMarkLabelForCell(row) {
@@ -236,7 +262,7 @@ export default {
       }
     },
     needUpdateCellLabel(positionX, positionY, type) {
-      const currCellType = this.gridLayout[positionX][positionY].type;
+      const currCellType = this.gridLayout[positionY][positionX].type;
 
       const aisleUnset = [CellType.Aisle, CellType.Unset, CellType.MultiSelect];
       const seatTypes = [CellType.SeatNormal, CellType.SeatVIP];
@@ -255,10 +281,12 @@ export default {
       const { xEnd, xStart, yEnd, yStart } = getRangeData(this.multiCellSelected);
       let count = 0;
       for (const key in this.gridLayout) {
-        if (key.charCodeAt(0) >= xStart.charCodeAt(0) && key.charCodeAt(0) <= xEnd.charCodeAt(0)) {
+        if (key.charCodeAt(0) >= yStart.charCodeAt(0) && key.charCodeAt(0) <= yEnd.charCodeAt(0)) {
           for (let i = 0; i < this.gridLayout[key].length; i++) {
-            if (i >= yStart && i <= yEnd) {
-              if (this.gridLayout[key][i].type === CellType.Unset) {
+            if (i >= xStart && i <= xEnd) {
+              if (this.gridLayout[key][i].type === CellType.Unset
+                || (this.gridLayout[key][i].type === CellType.MultiSelect && !this.gridLayout[key][i].seatLabel)
+              ) {
                 count++;
               }
             }

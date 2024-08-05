@@ -63,16 +63,16 @@ export function getRangeData(array) {
   const yValues = array.map(item => item.y);
 
   // Get the minimum and maximum values
-  const xStart = Math.min(...xValues.map(x => x.charCodeAt(0)));
-  const xEnd = Math.max(...xValues.map(x => x.charCodeAt(0)));
-  const yStart = Math.min(...yValues);
-  const yEnd = Math.max(...yValues);
+  const yStart = Math.min(...yValues.map(x => x.charCodeAt(0)));
+  const yEnd = Math.max(...yValues.map(x => x.charCodeAt(0)));
+  const xStart = Math.min(...xValues);
+  const xEnd = Math.max(...xValues);
 
   // Convert xStart and xEnd back to characters
   return {
-    xStart: String.fromCharCode(xStart),
-    xEnd: String.fromCharCode(xEnd),
-    yStart,
-    yEnd
+    yStart: String.fromCharCode(yStart),
+    yEnd: String.fromCharCode(yEnd),
+    xStart,
+    xEnd
   };
 }
