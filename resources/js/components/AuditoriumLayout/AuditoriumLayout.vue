@@ -160,7 +160,9 @@ export default {
         for (let index = 0; index < uniqueGrid[key].length; index++) {
           if (uniqueGrid[key][index].type !== CellType.Unset) {
             addedCells.push({
-              ...uniqueGrid[key][index]
+              x_position: index,
+              ...uniqueGrid[key][index],
+              y_position: key,
             })
           }
         }
