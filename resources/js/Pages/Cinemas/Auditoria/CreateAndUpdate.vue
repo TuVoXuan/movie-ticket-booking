@@ -1,6 +1,6 @@
 <template>
   <Box>
-    <h1 class="text-2xl font-medium text-center mb-4">Create New Auditorium</h1>
+    <h1 class="text-2xl font-medium text-center mb-4">{{ auditorium ? 'Update' : 'Create New' }} Auditorium</h1>
     <a-form id="auditoriumForm" layout="vertical" @submit.prevent="onSubmit" class="grid grid-cols-2 gap-3 mb-4">
       <a-form-item class="mb-0" label="Name" v-bind="nameProps">
         <a-input size="large" v-model:value="name" />
@@ -115,16 +115,31 @@ const onSubmit = handleSubmit((values) => {
     })
     return;
   }
-  const body = {
+
+  let body = {
     name: values.name,
     capacity: values.capacity,
     seat_direction: values.seatDirection,
     rows: values.rows,
     columns: values.columns,
-    grid_layout: auditoriumLayout.value.gridLayout
   }
 
-  router.post(route('cinemas.branches.auditoria.store', route().params), body);
+  if (auditorium.value) {
+    const { updatedCells, addedCells, deletedCells } = auditoriumLayout.value.getUpdatedGridLayoutCompareToOrigin;
+    if (addedCells.length > 0) {
+      body['added_cells'] = addedCells;
+    }
+    if (updatedCells.length > 0) {
+      body['updated_cells'] = updatedCells;
+    }
+    if (deletedCells.length > 0) {
+      body['deleted_cells'] = deletedCells;
+    }
+    router.put(route('cinemas.branches.auditoria.update', route().params), body);
+  } else {
+    body['grid_layout'] = auditoriumLayout.value.gridLayout
+    router.post(route('cinemas.branches.auditoria.store', route().params), body);
+  }
 })
 
 

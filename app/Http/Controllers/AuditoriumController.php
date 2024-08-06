@@ -117,4 +117,92 @@ class AuditoriumController extends Controller
             return redirect()->route('cinemas.branches.auditoria.index', ['branch' => $branch])->with('error', 'An error occurred during get auditorium.');
         }
     }
+
+    public function update(Request $request, string $branch, string $auditorium)
+    {
+        try {
+            $body = $request->all();
+            $validated = Validator::make($body, [
+                'name' => 'required|string|min:1',
+                'capacity' => 'required|numeric|min:0',
+                'seat_direction' => 'required|string',
+                'rows' => 'required|numeric|min:0',
+                'columns' => 'required|numeric|min:0',
+                'added_cells' => 'sometimes|required|array',
+                'added_cells.*.seatLabel' => 'sometimes|nullable|string',
+                'added_cells.*.x_position' => 'sometimes|required|numeric',
+                'added_cells.*.y_position' => 'sometimes|required|string',
+                'added_cells.*.type' => ['sometimes', 'required', Rule::enum(SeatType::class)],
+                'deleted_cells' => 'sometimes|required|array',
+                'deleted_cells.*.id' => 'sometimes|required|numeric',
+                'updated_cells' => 'sometimes|required|array',
+                'updated_cells.*.id' => 'sometimes|required|numeric',
+                'updated_cells.*.seatLabel' => 'sometimes|nullable|string',
+                'updated_cells.*.type' => ['sometimes', 'required', Rule::enum(SeatType::class)],
+                'updated_cells.*.x_position' => 'sometimes|required|numeric',
+                'updated_cells.*.y_position' => 'sometimes|required|string',
+            ]);
+
+            if ($validated->fails()) {
+                return back()->withErrors($validated->errors());
+            }
+
+            $auditoriumModel = Auditorium::whereHas('cinemaBranch', function ($query) use ($branch) {
+                $query->where('code', '=', $branch);
+            })->where('code', '=', $auditorium)->first();
+
+            if (!$auditoriumModel) {
+                return back()->with('error', 'Auditorium not found.');
+            }
+
+            $code = SlugHelper::convertToSlug($body['name']);
+            $auditoriumModel->update([
+                'name' => $body['name'],
+                'capacity' => $body['capacity'],
+                'seat_direction' => $body['seat_direction'],
+                'rows' => $body['rows'],
+                'columns' => $body['columns'],
+                'code' => $code
+            ]);
+
+            if ($request->has('added_cells')) {
+                foreach ($body['added_cells'] as $cell) {
+                    SeatingArrangement::create([
+                        'auditorium_id' => $auditoriumModel->id,
+                        'label' => $cell['seatLabel'],
+                        'seat_type' => $cell['type'],
+                        'x_position' => $cell['x_position'],
+                        'y_position' => $cell['y_position']
+                    ]);
+                }
+            }
+
+            if ($request->has('updated_cells')) {
+                foreach ($body['updated_cells'] as $cell) {
+                    $seat = SeatingArrangement::find($cell['id']);
+                    if (!$seat) {
+                        return back()->with('error', 'Seat not found to update.');
+                    }
+
+                    $seat->update([
+                        'label' => $cell['seatLabel'],
+                        'seat_type' => $cell['type'],
+                        'x_position' => $cell['x_position'],
+                        'y_position' => $cell['y_position']
+                    ]);
+                }
+            }
+
+            if ($request->has('deleted_cells')) {
+                foreach ($body['deleted_cells'] as $cell) {
+                    SeatingArrangement::destroy($cell['id']);
+                }
+            }
+
+            return redirect()->route('cinemas.branches.auditoria.index', ['branch' => $branch])->with('success', 'Update auditorium successfully.');
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return redirect()->route('cinemas.branches.auditoria.edit', ['branch' => $branch, 'auditorium' => $auditorium])->with('error', 'An error occurred during update auditorium.');
+        }
+    }
 }

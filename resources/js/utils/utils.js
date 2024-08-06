@@ -76,3 +76,64 @@ export function getRangeData(array) {
     xEnd
   };
 }
+
+export function compareGridLayouts(gridLayoutOrigin, gridLayout) {
+  const commonOrigin = {};
+  const commonGrid = {};
+  const uniqueOrigin = {};
+  const uniqueGrid = {};
+
+  const originKeys = Object.keys(gridLayoutOrigin);
+  const gridKeys = Object.keys(gridLayout);
+
+
+  for (const key in gridLayoutOrigin) {
+    if (gridLayout[key]) {
+      commonOrigin[key] = [];
+      commonGrid[key] = [];
+
+      uniqueOrigin[key] = [];
+      uniqueGrid[key] = [];
+
+      const originSeats = gridLayoutOrigin[key];
+      const currentSeats = gridLayout[key];
+
+      // Tìm phần chung và phần riêng
+      const maxLength = Math.max(originSeats.length, currentSeats.length);
+      for (let i = 0; i < maxLength; i++) {
+        if (originSeats[i] && currentSeats[i]) {
+          // Nếu cả hai có phần tử ở cùng chỉ số
+          commonOrigin[key].push({...originSeats[i], x_position: i});
+          commonGrid[key].push({...currentSeats[i], x_position: i});
+        } 
+        if (originSeats[i] && !currentSeats[i]) {
+          // Nếu chỉ có ở gridLayoutOrigin
+          uniqueOrigin[key].push({ ...originSeats[i], x_position: i });
+        }
+        if (!originSeats[i] && currentSeats[i]) {
+          // Nếu chỉ có ở gridLayout
+          uniqueGrid[key].push({ ...currentSeats[i], x_position: i });
+        }
+      }
+    }
+  }
+
+  if(originKeys.length > gridKeys.length){
+    const uniqueKeys = originKeys.filter((key) => !gridKeys.includes(key));
+    for (const key of uniqueKeys) {
+      uniqueOrigin[key] = gridLayoutOrigin[key];
+    }
+  }else if(originKeys.length < gridKeys.length) {
+    const uniqueKeys = gridKeys.filter((key) => !originKeys.includes(key));
+    for (const key of uniqueKeys) {
+      uniqueGrid[key] = gridLayout[key];
+    }
+  }
+
+  return {
+    commonOrigin,
+    commonGrid,
+    uniqueOrigin,
+    uniqueGrid,
+  };
+}

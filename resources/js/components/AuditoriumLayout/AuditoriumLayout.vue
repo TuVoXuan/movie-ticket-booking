@@ -68,7 +68,7 @@
 
 <script>
 import { Button, Popover, Select, Segmented, notification } from 'ant-design-vue';
-import { generateGridObject, getRangeData } from '../../utils/utils';
+import { generateGridObject, getRangeData, compareGridLayouts } from '../../utils/utils';
 import { CellType } from '../../constant/enum';
 
 export default {
@@ -80,7 +80,7 @@ export default {
     Segmented
   },
   props: ['rows', 'columns', 'seatDirection', 'capacity', 'defaultGridLayout'],
-  expose: ['gridLayout', 'seatCount'],
+  expose: ['gridLayout', 'seatCount', 'getUpdatedGridLayoutCompareToOrigin'],
   data() {
     const chairTypeOptions = [
       {
@@ -121,6 +121,62 @@ export default {
         });
       }
       return count;
+    },
+    getUpdatedGridLayoutCompareToOrigin() {
+      const updatedCells = [];
+      const addedCells = [];
+      const deletedCells = [];
+
+      const { commonGrid, commonOrigin, uniqueGrid, uniqueOrigin } = compareGridLayouts(this.gridLayoutOrigin, this.gridLayout);
+
+      for (const row in commonGrid) {
+        for (let index = 0; index < commonGrid[row].length; index++) {
+          const cell = commonGrid[row][index];
+          const originCell = commonOrigin[row][index];
+
+          const seatType = [CellType.SeatNormal, CellType.SeatVIP, CellType.Aisle];
+          if (seatType.includes(cell.type) && seatType.includes(originCell.type)
+            && originCell?.id && cell.type !== originCell.type) {
+            updatedCells.push({
+              id: originCell.id,
+              ...cell,
+              y_position: row
+            })
+          } else if (originCell.type === CellType.Unset && seatType.includes(cell.type) && !originCell?.id) {
+            addedCells.push({
+              ...cell,
+              y_position: row
+            })
+          } else if (seatType.includes(originCell.type) && cell.type === CellType.Unset && originCell?.id) {
+            deletedCells.push({
+              id: originCell.id,
+              seatLabel: originCell.seatLabel,
+            })
+          }
+        }
+      }
+
+      for (const key in uniqueGrid) {
+        for (let index = 0; index < uniqueGrid[key].length; index++) {
+          if (uniqueGrid[key][index].type !== CellType.Unset) {
+            addedCells.push({
+              ...uniqueGrid[key][index]
+            })
+          }
+        }
+      }
+
+      for (const key in uniqueOrigin) {
+        for (let index = 0; index < uniqueOrigin[key].length; index++) {
+          if (uniqueOrigin[key][index].type !== CellType.Unset) {
+            deletedCells.push({
+              ...uniqueOrigin[key][index]
+            })
+          }
+        }
+      }
+
+      return { updatedCells, addedCells, deletedCells }
     }
   },
   watch: {
