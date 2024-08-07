@@ -28,8 +28,9 @@
         </a-select>
       </a-form-item>
       <a-form-item class="mb-0" label="Screening time" v-bind="screeningTimeProps">
-        <a-date-picker class="w-full" size="large" show-time placeholder="Select screening time"
-          v-model:value="screeningTime" format="HH:mm:ss DD/MM/YYYY" :disabled-date="disabledDate" />
+        <a-date-picker :disabled="isSubmitting" class="w-full" size="large" show-time
+          placeholder="Select screening time" v-model:value="screeningTime" format="HH:mm:ss DD/MM/YYYY"
+          :disabled-date="disabledDate" />
       </a-form-item>
       <a-form-item class="mb-0" label="Film translation" v-bind="filmTranslationProps">
         <a-select :disabled="isSubmitting" size="large" label-in-value v-model:value="filmTranslation"
@@ -37,7 +38,7 @@
         </a-select>
       </a-form-item>
 
-      <a-button type="primary" html-type="submit" class="w-fit">Save</a-button>
+      <a-button :loading="isSubmitting" type="primary" html-type="submit" class="w-fit">Save</a-button>
     </a-form>
   </Box>
 </template>
@@ -89,7 +90,15 @@ const [screeningTime, screeningTimeProps] = defineField('screeningTime', antConf
 const [filmTranslation, filmTranslationProps] = defineField('filmTranslation', antConfig);
 
 const onSubmit = handleSubmit((values) => {
-  console.log("values: ", values);
+  isSubmitting.value = true;
+  const body = {
+    film: values.film.value,
+    auditorium: values.auditorium.value,
+    film_translation: values.filmTranslation.value,
+    screening_time: values.screeningTime.toISOString()
+  }
+  const branch = route().params.branch;
+  router.post(route('cinemas.branches.showtimes.store', { branch }), body);
 })
 
 const filmsOptions = reactive({

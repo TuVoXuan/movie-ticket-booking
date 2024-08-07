@@ -9,6 +9,8 @@ class Screening extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['film_id', 'auditorium_id', 'screening_time', 'film_translation'];
+
     public function film()
     {
         return $this->belongsTo(Film::class);
