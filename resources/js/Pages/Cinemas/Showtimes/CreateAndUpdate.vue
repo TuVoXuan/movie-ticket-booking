@@ -28,8 +28,8 @@
         </a-select>
       </a-form-item>
       <a-form-item class="mb-0" label="Screening time" v-bind="screeningTimeProps">
-        <a-date-picker :disabled="isSubmitting" class="w-full" size="large" show-time
-          placeholder="Select screening time" v-model:value="screeningTime" format="HH:mm:ss DD/MM/YYYY"
+        <a-date-picker :disabled="isSubmitting" class="w-full" size="large" :show-time="{ format: 'HH:mm' }"
+          placeholder="Select screening time" v-model:value="screeningTime" format="HH:mm DD/MM/YYYY"
           :disabled-date="disabledDate" />
       </a-form-item>
       <a-form-item class="mb-0" label="Film translation" v-bind="filmTranslationProps">
@@ -95,7 +95,7 @@ const onSubmit = handleSubmit((values) => {
     film: values.film.value,
     auditorium: values.auditorium.value,
     film_translation: values.filmTranslation.value,
-    screening_time: values.screeningTime.toISOString()
+    screening_time: values.screeningTime.format('YYYY-MM-DD HH:mm')
   }
   const branch = route().params.branch;
   router.post(route('cinemas.branches.showtimes.store', { branch }), body);
