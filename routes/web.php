@@ -5,6 +5,7 @@ use App\Http\Controllers\AuditoriumController;
 use App\Http\Controllers\CinemaController;
 use App\Http\Controllers\FilmController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\ShowtimesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -50,6 +51,9 @@ Route::prefix('cinemas')->group(function () {
     Route::post('/branches/{branch}/auditoria', [AuditoriumController::class, 'store'])->name('cinemas.branches.auditoria.store');
     Route::get('/branches/{branch}/auditoria/{auditorium}/edit', [AuditoriumController::class, 'edit'])->name('cinemas.branches.auditoria.edit');
     Route::put('/branches/{branch}/auditoria/{auditorium}', [AuditoriumController::class, 'update'])->name('cinemas.branches.auditoria.update');
+
+    Route::get('/branches/{branch}/showtimes', [ShowtimesController::class, 'index'])->name('cinemas.branches.showtimes.index');
+    Route::get('/branches/{branch}/showtimes/create', [ShowtimesController::class, 'create'])->name('cinemas.branches.showtimes.create');
 });
 
 Route::get('/roles', function () {

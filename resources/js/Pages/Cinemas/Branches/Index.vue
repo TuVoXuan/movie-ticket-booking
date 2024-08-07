@@ -60,6 +60,15 @@
 
         <div v-if="column.key === 'action'" class="flex items-center gap-x-3">
           <a-tooltip>
+            <template #title>Showtimes</template>
+            <a-button shape="circle" class="relative hover:!border-purple-200 hover:bg-purple-50">
+              <Link :href="route('cinemas.branches.showtimes.index', record.code)">
+              <Icon name="calendar_outline"
+                class="absolute text-purple-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
+              </Link>
+            </a-button>
+          </a-tooltip>
+          <a-tooltip>
             <template #title>Edit</template>
             <a-button shape="circle" class="relative hover:!border-blue-200 hover:bg-blue-50">
               <Link :href="route('cinemas.branches.edit', record.code)">
