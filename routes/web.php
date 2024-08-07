@@ -55,6 +55,8 @@ Route::prefix('cinemas')->group(function () {
     Route::get('/branches/{branch}/showtimes', [ShowtimesController::class, 'index'])->name('cinemas.branches.showtimes.index');
     Route::get('/branches/{branch}/showtimes/create', [ShowtimesController::class, 'create'])->name('cinemas.branches.showtimes.create');
     Route::post('/branches/{branch}/showtimes', [ShowtimesController::class, 'store'])->name('cinemas.branches.showtimes.store');
+    Route::get('/branches/{branch}/showtimes/{showtime}/edit', [ShowtimesController::class, 'edit'])->name('cinemas.branches.showtimes.edit');
+    Route::put('/branches/{branch}/showtimes/{showtime}', [ShowtimesController::class, 'update'])->name('cinemas.branches.showtimes.update');
 });
 
 Route::get('/roles', function () {

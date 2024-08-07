@@ -38,7 +38,8 @@
           <a-tooltip>
             <template #title>Edit</template>
             <a-button shape="circle" class="relative hover:!border-blue-200 hover:bg-blue-50">
-              <Link :href="route('films.edit', record.id)">
+              <Link
+                :href="route('cinemas.branches.showtimes.edit', { branch: route().params.branch, showtime: record.id })">
               <Icon name="pen_outline"
                 class="absolute text-blue-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
               </Link>

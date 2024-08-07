@@ -50,8 +50,11 @@ import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { debounce } from 'lodash';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, defineProps, toRefs } from 'vue';
 import dayjs from 'dayjs';
+
+const props = defineProps(['screening']);
+const { screening } = toRefs(props);
 
 const filmTranslationOptions = ref([
   {
@@ -81,7 +84,22 @@ const antConfig = (state) => ({
 });
 
 const { defineField, handleSubmit, errors, resetForm } = useForm({
-  validationSchema: schema
+  validationSchema: schema,
+  initialValues: {
+    film: screening.value?.film && {
+      value: screening.value.film.id,
+      label: screening.value.film.title,
+      code: screening.value.film.code,
+      thumbnail: screening.value.film.thumbnail.url
+    },
+    auditorium: screening.value?.auditorium && {
+      label: screening.value.auditorium.name,
+      value: screening.value.auditorium.id
+    },
+    screeningTime: screening.value?.screening_time && dayjs(screening.value.screening_time),
+    filmTranslation: screening.value?.film_translation &&
+      filmTranslationOptions.value.find((option) => option.value === screening.value?.film_translation)
+  }
 });
 
 const [film, filmProps] = defineField('film', antConfig);
@@ -98,7 +116,11 @@ const onSubmit = handleSubmit((values) => {
     screening_time: values.screeningTime.format('YYYY-MM-DD HH:mm')
   }
   const branch = route().params.branch;
-  router.post(route('cinemas.branches.showtimes.store', { branch }), body);
+  if (screening.value) {
+    router.put(route('cinemas.branches.showtimes.update', { branch: branch, showtime: screening.value.id }), body);
+  } else {
+    router.post(route('cinemas.branches.showtimes.store', { branch }), body);
+  }
 })
 
 const filmsOptions = reactive({

@@ -100,4 +100,69 @@ class ShowtimesController extends Controller
             return back()->with('error', 'And error occurred during create screening.');
         }
     }
+
+    public function edit(Request $request, string $branch, string $showtime)
+    {
+        try {
+            $screening = Screening::with([
+                'film' => function ($query) {
+                    $query->select('id', 'title', 'code', 'thumbnail');
+                },
+                'film.thumbnail' => function ($query) {
+                    $query->select('id', 'url');
+                },
+                'auditorium' => function ($query) {
+                    $query->select('id', 'name');
+                }
+            ])->whereHas('auditorium.cinemaBranch', function ($query) use ($branch) {
+                $query->where('code', '=', $branch);
+            })->where('id', '=', $showtime)->first();
+
+            if (!$screening) {
+                return redirect()->route('cinemas.branches.showtimes.index', ['branch' => $branch])->with('error', 'Showtimes not found.');
+            }
+
+            return Inertia::render('Cinemas/Showtimes/CreateAndUpdate', ['screening' => $screening]);
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return back()->with('error', 'And error occurred during get screening.');
+        }
+    }
+
+    public function update(Request $request, string $branch, string $showtime)
+    {
+        try {
+            $body = $request->all();
+            $validated = Validator::make($body, [
+                'film' => 'required|numeric|exists:films,id',
+                'auditorium' => 'required|numeric|exists:auditoria,id',
+                'screening_time' => 'required|date',
+                'film_translation' => ['required', Rule::enum(FilmTranslation::class)]
+            ]);
+
+            if ($validated->fails()) {
+                return back()->withErrors($validated->errors());
+            }
+
+            $screening = Screening::whereHas('auditorium.cinemaBranch', function ($query) use ($branch) {
+                $query->where('code', '=', $branch);
+            })->where('id', '=', $showtime)->first();
+
+            if (!$screening) {
+                return back()->with('error', 'Screening not found.');
+            }
+
+            $screening->update([
+                'film_id' => $body['film'],
+                'auditorium_id' => $body['auditorium'],
+                'screening_time' => Carbon::parse($body['screening_time']),
+                'film_translation' => $body['film_translation']
+            ]);
+
+            return redirect()->route('cinemas.branches.showtimes.index', ['branch' => $branch])->with('success', 'Update showtime successfully.');
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return back()->with('error', 'And error occurred during update screening.');
+        }
+    }
 }
