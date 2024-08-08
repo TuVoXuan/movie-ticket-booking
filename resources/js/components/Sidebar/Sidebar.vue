@@ -69,7 +69,7 @@ export default {
           ]
         },
         {
-          key: 'roles',
+          key: 'roles.index',
           icon: () => h(RoleOutline),
           label: 'Roles',
           title: 'Roles',
