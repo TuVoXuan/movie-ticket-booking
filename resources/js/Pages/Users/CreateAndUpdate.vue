@@ -31,8 +31,8 @@ import { router, usePage } from '@inertiajs/vue3';
 import { defineProps, toRefs, ref, onMounted } from 'vue';
 import { EmailRegex } from '../../constant';
 
-const props = defineProps(['roles']);
-const { roles } = toRefs(props);
+const props = defineProps(['roles', 'user']);
+const { roles, user } = toRefs(props);
 const roleOptions = ref([]);
 const isSubmitting = ref(false);
 
@@ -45,7 +45,13 @@ const schema = yup.object().shape({
 })
 
 const { defineField, handleSubmit, errors, resetForm } = useForm({
-  validationSchema: schema
+  validationSchema: schema,
+  initialValues: {
+    name: user.value && user.value.name,
+    email: user.value && user.value.email,
+    account: user.value && user.value.account,
+    isActive: user.value && user.value.is_active
+  }
 })
 
 const antConfig = (state) => ({

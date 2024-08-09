@@ -71,4 +71,4 @@ Route::prefix('permissions')->group(function () {
 });
 
 Route::resource('users', UserController::class)
-    ->only(['index', 'create', 'store']);
+    ->only(['index', 'create', 'store', 'edit']);
