@@ -5,6 +5,7 @@ use App\Http\Controllers\AuditoriumController;
 use App\Http\Controllers\CinemaController;
 use App\Http\Controllers\FilmController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ShowtimesController;
 use Illuminate\Support\Facades\Route;
@@ -63,35 +64,11 @@ Route::prefix('cinemas')->group(function () {
 Route::resource('roles', RoleController::class)
     ->only(['index', 'store', 'update', 'destroy']);
 
-Route::get('/permissions', function () {
-    return Inertia::render('PermissionsPage');
-})->name('permissions');
+Route::prefix('permissions')->group(function () {
+    Route::get('/', [PermissionController::class, 'index'])->name('permissions.index');
+    Route::post('/role-permissions', [PermissionController::class, 'updateRolePermission'])->name('permissions.updateRolePermissions');
+});
+
 Route::get('/users', function () {
     return Inertia::render('UsersPage');
 })->name('users');
-
-
-// Route::resource('films', FilmController::class)->only(['index', 'create']);
-
-// Route::get('/artists', function () {
-//     return view('artist.index');
-// })->name('artists');
-// Route::get('/genres', function () {
-//     return view('genre.index');
-// })->name('genres');
-// Route::get('/cinemas', function () {
-//     return view('cinema.index');
-// })->name('cinemas');
-// Route::get('/roles', function () {
-//     return view('role.index');
-// })->name('roles');
-// Route::get('/permissions', function () {
-//     return view('permission.index');
-// })->name('permissions');
-// Route::get('/users', function () {
-//     return view('user.index');
-// })->name('users.index');
-
-// Route::get('/users/{user}', function () {
-//     return view('user.show');
-// })->name('users.show');

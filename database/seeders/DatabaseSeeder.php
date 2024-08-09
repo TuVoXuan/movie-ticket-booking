@@ -5,7 +5,9 @@ namespace Database\Seeders;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 use App\Helpers\SlugHelper;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
@@ -43,6 +45,60 @@ class DatabaseSeeder extends Seeder
         //     DB::table('regions')->insert([
         //         'name' => $province,
         //         'code' => SlugHelper::convertToSlug($province)
+        //     ]);
+        // }
+
+        // $permissions = [
+        //     'films.read',
+        //     'films.create',
+        //     'films.update',
+        //     'films.delete',
+
+        //     'artists.read',
+        //     'artists.create',
+        //     'artists.update',
+        //     'artists.delete',
+
+        //     'genres.read',
+        //     'genres.create',
+        //     'genres.update',
+        //     'genres.delete',
+
+        //     'cinemas.companies.read',
+        //     'cinemas.companies.create',
+        //     'cinemas.companies.update',
+        //     'cinemas.companies.delete',
+
+        //     'cinemas.branches.read',
+        //     'cinemas.branches.create',
+        //     'cinemas.branches.update',
+        //     'cinemas.branches.delete',
+
+        //     'auditoria.read',
+        //     'auditoria.create',
+        //     'auditoria.update',
+        //     'auditoria.delete',
+
+        //     'showtimes.read',
+        //     'showtimes.create',
+        //     'showtimes.update',
+        //     'showtimes.delete',
+
+        //     'roles.read',
+        //     'roles.create',
+        //     'roles.update',
+        //     'roles.delete',
+
+        //     'users.read',
+        //     'users.create',
+        //     'users.update',
+        //     'users.delete'
+        // ];
+
+        // foreach ($permissions as $permission) {
+        //     DB::table('permissions')->insert([
+        //         'name' => $permission,
+        //         'code' => $permission,
         //     ]);
         // }
     }

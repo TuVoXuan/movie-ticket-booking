@@ -75,7 +75,7 @@ export default {
           title: 'Roles',
         },
         {
-          key: 'permissions',
+          key: 'permissions.index',
           icon: () => h(PermissionOutline),
           label: 'Permissions',
           title: 'Permissions',
