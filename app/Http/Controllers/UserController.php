@@ -103,4 +103,64 @@ class UserController extends Controller
             return redirect()->route('users.create')->with('error', 'An error occurred during get user.');
         }
     }
+
+    public function update(Request $request, string $id)
+    {
+        try {
+            $user = User::find($id);
+            if (!$user) {
+                return back()->with('error', 'User not found.');
+            }
+
+            $body = $request->all();
+            $validated = Validator::make($body, [
+                'name' => 'required|string|min:3',
+                'role' => 'required|numeric|exists:roles,id',
+                'is_active' => 'required|boolean'
+            ]);
+
+            if ($validated->fails()) {
+                return back()->withErrors($validated->errors());
+            }
+
+            $user->update([
+                'name' => $body['name'],
+                'is_active' => $body['is_active']
+            ]);
+
+            $oldRoles = UserRole::where('user_id', '=', $user->id)->first();
+            if ($oldRoles) {
+                if ($oldRoles->role_id !== $body['role']) {
+                    $oldRoles->update([
+                        'role_id' => $body['role']
+                    ]);
+                }
+            }
+            return redirect()->route('users.index')->with('success', 'Update user successfully.');
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return redirect()->route('users.edit', ['user' => $id])->with('error', 'An error occurred during update user.');
+        }
+    }
+
+    public function destroy(Request $request, string $id)
+    {
+        try {
+            $user = User::find($id);
+            if (!$user) {
+                return back()->with('error', 'User not found.');
+            }
+
+            $userRole = UserRole::where('user_id', '=', $id)->first();
+            if ($userRole) {
+                $userRole->delete();
+            }
+
+            $user->delete();
+            return redirect()->route('users.index')->with('success', 'Delete user successfully.');
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return redirect()->route('users.index')->with('error', 'An error occurred during delete user.');
+        }
+    }
 }

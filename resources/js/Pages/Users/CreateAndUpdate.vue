@@ -6,10 +6,10 @@
         <a-input :disabled="isSubmitting" size="large" v-model:value="name" placeholder="Enter name" />
       </a-form-item>
       <a-form-item class="mb-0" label="Email" v-bind="emailProps">
-        <a-input :disabled="isSubmitting" size="large" v-model:value="email" placeholder="Enter email" />
+        <a-input :disabled="isSubmitting || !!user" size="large" v-model:value="email" placeholder="Enter email" />
       </a-form-item>
       <a-form-item class="mb-0" label="Account" v-bind="accountProps">
-        <a-input :disabled="isSubmitting" size="large" v-model:value="account" placeholder="Enter account" />
+        <a-input :disabled="isSubmitting || !!user" size="large" v-model:value="account" placeholder="Enter account" />
       </a-form-item>
       <a-form-item class="mb-0" label="Role" v-bind="roleProps">
         <a-select :disabled="isSubmitting" :options="roleOptions" v-model:value="role" placeholder="Select role"
@@ -50,7 +50,8 @@ const { defineField, handleSubmit, errors, resetForm } = useForm({
     name: user.value && user.value.name,
     email: user.value && user.value.email,
     account: user.value && user.value.account,
-    isActive: user.value && user.value.is_active
+    isActive: user.value ? !!user.value.is_active : false,
+    role: user.value && user.value.roles[0].id
   }
 })
 
@@ -70,21 +71,26 @@ const [isActive, isActiveProps] = defineField('isActive', antConfig);
 
 const onSubmit = handleSubmit((values) => {
   isSubmitting.value = true;
-  const body = {
+  let body = {
     name: values.name,
-    email: values.email,
-    account: values.account,
     is_active: values.isActive,
     role: values.role
   }
 
-  router.post(route('users.store'), body);
+  if (user.value) {
+    router.put(route('users.update', { user: user.value.id }), body);
+  } else {
+    body.email = values.email;
+    body.account = values.account;
+    router.post(route('users.store'), body);
+  }
 })
 
 onMounted(() => {
   roleOptions.value = roles.value.map((item) => ({ value: item.id, label: item.name }));
 
   router.on('finish', (event) => {
+    const page = usePage();
     if (page.props.error) {
       isSubmitting.value = false;
     }

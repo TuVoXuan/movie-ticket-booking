@@ -37,7 +37,7 @@
           <a-tooltip>
             <template #title>Edit</template>
             <a-button shape="circle" class="relative hover:!border-blue-200 hover:bg-blue-50">
-              <Link :href="route('films.edit', record.id)">
+              <Link :href="route('users.edit', record.id)">
               <Icon name="pen_outline"
                 class="absolute text-blue-500 left-1/2 translate-x-[-50%] translate-y-[-50%] h-5 w-5" />
               </Link>
@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import { Button, Table, Input, Select } from 'ant-design-vue';
+import { Button, Table, Input, Select, Tooltip, Modal } from 'ant-design-vue';
 import { router } from '@inertiajs/vue3';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
@@ -73,7 +73,9 @@ export default {
     Button,
     Table,
     Input,
-    Select
+    Select,
+    Tooltip,
+    Modal
   },
   props: ['users', 'roles'],
   data() {
@@ -82,7 +84,7 @@ export default {
       sortInfo: {},
       dayjs,
       roleOptions: [],
-      role: null
+      role: null,
     }
   },
   methods: {
@@ -111,7 +113,7 @@ export default {
         title: "Do you want to delete this item?",
         icon: createVNode(ExclamationCircleOutlined),
         content: createVNode('div', { class: 'text-red-500' }, "This action can't be undo."),
-        // onOk: () => router.delete(route('films.destroy', id))
+        onOk: () => router.delete(route('users.destroy', id))
       })
     },
     fetchUsers(params) {
