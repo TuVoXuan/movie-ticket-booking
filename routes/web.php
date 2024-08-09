@@ -8,6 +8,7 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ShowtimesController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -69,6 +70,5 @@ Route::prefix('permissions')->group(function () {
     Route::post('/role-permissions', [PermissionController::class, 'updateRolePermission'])->name('permissions.updateRolePermissions');
 });
 
-Route::get('/users', function () {
-    return Inertia::render('UsersPage');
-})->name('users');
+Route::resource('users', UserController::class)
+    ->only(['index', 'create', 'store']);

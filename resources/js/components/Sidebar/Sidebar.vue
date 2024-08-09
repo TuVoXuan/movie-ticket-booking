@@ -81,7 +81,7 @@ export default {
           title: 'Permissions',
         },
         {
-          key: 'users',
+          key: 'users.index',
           icon: () => h(UserOutline),
           label: 'Users',
           title: 'Users',
