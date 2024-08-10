@@ -35,11 +35,22 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
+        // Eager load roles and permissions
+        $userWithPermissions = $user->load('roles.permissions:id,code,name');
+
+        // Get all permissions from the user's roles
+        $permissions = $userWithPermissions->roles->flatMap(function ($role) {
+            return $role->permissions;
+        })->unique('id');
+
         return array_merge(parent::share($request), [
             'success' => session('success'),
             'error' => session('error'),
             'query' => $request->query(),
-            'user' => $request->user()
+            'user' => $user,
+            'permissions' => $permissions
         ]);
     }
 }

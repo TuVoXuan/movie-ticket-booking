@@ -19,8 +19,6 @@ class AuthController extends Controller
     {
         try {
             $body = $request->all();
-            $passwordRegex = '^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$';
-            $accountRegex = '^[a-z][a-z0-9]*$';
 
             $validated = Validator::make($body, [
                 'account' => 'required|string|min:3|regex:/^[a-z][a-z0-9]*$/',
