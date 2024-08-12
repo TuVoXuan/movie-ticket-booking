@@ -64,4 +64,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(TicketOrder::class);
     }
+
+    public function hasPermission($permission_code)
+    {
+        // Load roles and permissions for the user only if not already loaded
+        if (!$this->relationLoaded('roles.permissions')) {
+            $this->load('roles.permissions:id,code,name');
+        }
+
+        // Collect all unique permission codes associated with the user's roles
+        $permissionCodes = $this->roles->flatMap(function ($role) {
+            return $role->permissions->pluck('code');
+        })->unique();
+
+        // Check if the specified permission code exists in the user's permissions
+        return $permissionCodes->contains($permission_code);
+    }
 }

@@ -37,13 +37,17 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
-        // Eager load roles and permissions
-        $userWithPermissions = $user->load('roles.permissions:id,code,name');
+        $permissions = null;
+        if (isset($user)) {
+            // Eager load roles and permissions
+            $userWithPermissions =  $user->load('roles.permissions:id,code,name');
 
-        // Get all permissions from the user's roles
-        $permissions = $userWithPermissions->roles->flatMap(function ($role) {
-            return $role->permissions;
-        })->unique('id');
+            // Get all permissions from the user's roles
+            $permissions = $userWithPermissions->roles->flatMap(function ($role) {
+                return $role->permissions;
+            })->unique('id');
+        }
+
 
         return array_merge(parent::share($request), [
             'success' => session('success'),
