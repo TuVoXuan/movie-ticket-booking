@@ -104,3 +104,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('/login', [AuthController::class, 'getLogin'])->name('auth.getLogin');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');

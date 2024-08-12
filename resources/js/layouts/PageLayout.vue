@@ -1,10 +1,10 @@
 <template>
   <div class="m-0 flex h-screen overflow-hidden">
     <div class="w-[200px] shrink-0 h-screen bg-white overflow-y-auto px-3">
-      <div class="py-1 h-12 mb-10">
-        <a href="/">
-          <img class="object-contain h-full mx-auto" src="../../../public/assets/images/logo.png" alt="logo">
-        </a>
+      <div class="py-1 h-12 mb-3 flex items-center justify-center">
+        <Link :href="route('dashboard')" class="font-bold text-2xl text-blue-400">
+        Cineverse
+        </Link>
       </div>
 
       <Sidebar />
