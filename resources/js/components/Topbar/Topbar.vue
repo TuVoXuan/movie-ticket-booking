@@ -1,7 +1,9 @@
 <template>
   <div class="bg-white h-12 flex justify-between items-center p-4">
     <div class="hidden lg:block">
-      <div class="border-[1px] border-gray-300 p-1 rounded-md" @click="toggleCollapseMenu">
+      <div
+        class="hover:cursor-pointer hover:bg-slate-50 transition-colors ease-linear border-[1px] border-gray-300 p-1 rounded-md"
+        @click="toggleCollapseMenu">
         <Icon name="menu_outline" class="h-5 w-5" />
       </div>
     </div>

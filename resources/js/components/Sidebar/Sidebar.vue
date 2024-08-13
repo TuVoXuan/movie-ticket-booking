@@ -29,31 +29,31 @@ export default {
       items: [
         {
           key: 'dashboard',
-          icon: () => h(ChartOutline),
+          icon: () => h(ChartOutline, { class: 'w-4 h-4' }),
           label: 'Dashboard',
           title: 'Dashboard',
         },
         {
           key: 'films.index',
-          icon: () => h(FilmOutline),
+          icon: () => h(FilmOutline, { class: 'w-4 h-4' }),
           label: 'Films',
           title: 'Films',
         },
         {
           key: 'artists.index',
-          icon: () => h(ArtistOutline),
+          icon: () => h(ArtistOutline, { class: 'w-4 h-4' }),
           label: 'Artists',
           title: 'Artists',
         },
         {
           key: 'genres.index',
-          icon: () => h(CategoryOutline),
+          icon: () => h(CategoryOutline, { class: 'w-4 h-4' }),
           label: 'Genres',
           title: 'Genres',
         },
         {
           key: 'cinemas',
-          icon: () => h(BuildingOutline),
+          icon: () => h(BuildingOutline, { class: 'w-4 h-4' }),
           label: 'Cinemas',
           title: 'Cinemas',
           children: [
@@ -71,19 +71,19 @@ export default {
         },
         {
           key: 'roles.index',
-          icon: () => h(RoleOutline),
+          icon: () => h(RoleOutline, { class: 'w-4 h-4' }),
           label: 'Roles',
           title: 'Roles',
         },
         {
           key: 'permissions.index',
-          icon: () => h(PermissionOutline),
+          icon: () => h(PermissionOutline, { class: 'w-4 h-4' }),
           label: 'Permissions',
           title: 'Permissions',
         },
         {
           key: 'users.index',
-          icon: () => h(UserOutline),
+          icon: () => h(UserOutline, { class: 'w-4 h-4' }),
           label: 'Users',
           title: 'Users',
         },
@@ -112,8 +112,24 @@ export default {
         this.checkCurrentActiveRoute(item.key)
       }
     })
+
+    router.on('finish', (event) => {
+      this.items.forEach((item) => {
+        if (item.children) {
+          item.children.forEach((childItem) => {
+            this.checkCurrentActiveRoute(childItem.key)
+          })
+        } else {
+          this.checkCurrentActiveRoute(item.key)
+        }
+      })
+    })
   }
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="css">
+.ant-menu-inline-collapsed {
+  width: unset;
+}
+</style>
