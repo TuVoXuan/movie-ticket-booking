@@ -15,7 +15,8 @@
       </a-button>
     </div>
 
-    <a-table :data-source="artists.data" :columns="columns" :pagination="pagination" @change="handleTableChange">
+    <a-table :data-source="artists.data" :columns="columns" :pagination="pagination" @change="handleTableChange"
+      :scroll="{ x: 'max-content' }">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'birthday'">
           {{ record.birthday ? dayjs(record.birthday).format('DD/MM/YYYY') : '-' }}

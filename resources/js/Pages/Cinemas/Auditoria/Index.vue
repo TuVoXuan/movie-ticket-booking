@@ -7,7 +7,7 @@
       </a-button>
     </div>
 
-    <a-table :data-source="auditoria" :columns="columns">
+    <a-table :data-source="auditoria" :columns="columns" :scroll="{ x: 'max-content' }">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'action'" class="flex items-center gap-x-3">
           <a-tooltip>

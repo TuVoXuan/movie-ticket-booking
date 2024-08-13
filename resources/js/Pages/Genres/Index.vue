@@ -13,7 +13,7 @@
       <a-button type="primary" @click="openModal = true">Add New Genre</a-button>
     </div>
 
-    <a-table :data-source="genres" :columns="columns">
+    <a-table :data-source="genres" :columns="columns" :scroll="{ x: 'max-content' }">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'created_at'">
           {{ dayjs(record.created_at).format('DD/MM/YYYY') }}

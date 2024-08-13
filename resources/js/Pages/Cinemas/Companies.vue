@@ -6,7 +6,7 @@
         <a-button type="primary" @click="handleOpenModal">Add New Cinema</a-button>
       </div>
 
-      <a-table :data-source="cinemas" :columns="columns">
+      <a-table :data-source="cinemas" :columns="columns" :scroll="{ x: 'max-content' }">
         <template #bodyCell="{ column, record }">
           <div v-if="column.key === 'name'" class="flex items-center gap-x-3">
             <div class="h-[50px] w-[50px]">

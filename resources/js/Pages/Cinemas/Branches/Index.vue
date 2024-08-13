@@ -42,7 +42,8 @@
       </a-button>
     </div>
 
-    <a-table :data-source="cinemaBranches.data" :columns="columns" :pagination="pagination" @change="handleTableChange">
+    <a-table :data-source="cinemaBranches.data" :columns="columns" :pagination="pagination" @change="handleTableChange"
+      :scroll="{ x: 'max-content' }">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'name'">
           <Link :href="route('cinemas.branches.auditoria.index', { branch: record.code })">{{ record.name }}</Link>

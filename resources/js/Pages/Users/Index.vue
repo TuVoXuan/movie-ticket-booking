@@ -26,7 +26,8 @@
       </div>
     </div>
 
-    <a-table :data-source="users.data" :columns="columns" :pagination="pagination" @change="handleTableChange">
+    <a-table :data-source="users.data" :columns="columns" :pagination="pagination" @change="handleTableChange"
+      :scroll="{ x: 'max-content' }">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'role'">
           {{ record.roles[0].name }}

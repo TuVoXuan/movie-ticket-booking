@@ -27,7 +27,8 @@
       </div>
     </div>
 
-    <a-table :data-source="films.data" :columns="columns" :pagination="pagination" @change="handleTableChange">
+    <a-table :data-source="films.data" :columns="columns" :pagination="pagination" @change="handleTableChange"
+      :scroll="{ x: 'max-content' }">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'title'">
           <Link :href="route('films.edit', record.id)">{{ record.title }}</Link>

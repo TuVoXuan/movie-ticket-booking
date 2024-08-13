@@ -5,7 +5,7 @@
       <a-button type="primary" @click="openModal = true">Add New Role</a-button>
     </div>
 
-    <a-table :data-source="roles" :columns="columns">
+    <a-table :data-source="roles" :columns="columns" :scroll="{ x: 'max-content' }">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'created_at'">
           {{ dayjs(record.created_at).format('DD/MM/YYYY') }}
