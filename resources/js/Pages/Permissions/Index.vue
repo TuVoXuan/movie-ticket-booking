@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
     <div class="flex justify-between mb-4">
       <a-form id="rolePermissionForm" layout="vertical" @submit="onSubmit">
@@ -25,6 +26,7 @@
 </template>
 
 <script setup>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import { Tree, Select, Button, Form, FormItem } from 'ant-design-vue';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
@@ -33,6 +35,12 @@ import { router } from '@inertiajs/vue3';
 
 const props = defineProps(['permissions', 'roles']);
 const { permissions, roles } = toRefs(props);
+const breadcrumbItems = ref([
+  {
+    label: 'Permissions',
+    href: null
+  }
+])
 
 let treeData = ref([]);
 let checkedKeys = ref({});

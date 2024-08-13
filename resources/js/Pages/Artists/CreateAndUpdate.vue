@@ -1,6 +1,7 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
-    <h1 class="text-2xl font-medium text-center mb-4">{{ artist ? 'Update' : 'Create' }} New Artist</h1>
+    <h1 class="text-2xl font-medium text-center mb-4">{{ artist ? 'Update' : 'Create' }} Artist</h1>
     <a-form layout="vertical" @submit.prevent="onSubmit" :validation-schema="schema" class="grid grid-cols-2 gap-3">
       <a-form-item class="mb-0" label="Name" v-bind="nameProps">
         <a-input size="large" v-model:value="name" />
@@ -18,6 +19,7 @@
 </template>
 
 <script setup>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import { Input, Button, DatePicker, Textarea, Form, FormItem } from 'ant-design-vue';
 import * as yup from 'yup'
 import { useForm } from 'vee-validate';
@@ -27,6 +29,17 @@ import dayjs from 'dayjs';
 
 const props = defineProps(['artist']);
 const { artist } = toRefs(props);
+
+const breadcrumbItems = ref([
+  {
+    label: 'Artists',
+    href: route('artists.index')
+  },
+  {
+    label: artist.value ? 'Edit' : 'Create New',
+    href: null
+  }
+]);
 
 const schema = yup.object().shape({
   name: yup.string().required().min(3),

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\FilmTranslation;
 use App\Models\Auditorium;
+use App\Models\CinemaBranch;
 use App\Models\Screening;
 use Carbon\Carbon;
 use DateTime;
@@ -60,16 +61,20 @@ class ShowtimesController extends Controller
                     $query->whereBetween('screening_time', [Carbon::parse($startDate), Carbon::parse($endDate)]);
                 })->paginate($pageSize);
 
-            return Inertia::render('Cinemas/Showtimes/Index', ['showtimes' => $showtimes]);
+            $cinemaBranch = CinemaBranch::where('code', '=', $branch)->first();
+
+            return Inertia::render('Cinemas/Showtimes/Index', ['showtimes' => $showtimes, 'cinemaBranchName' => $cinemaBranch->name]);
         } catch (\Throwable $th) {
             Log::error($th);
             return redirect()->route('cinemas.branches.showtimes.index', ['branch' => $branch])->with('error', 'An error occurred during get list showtimes.');
         }
     }
 
-    public function create()
+    public function create(Request $request, string $branch)
     {
-        return Inertia::render('Cinemas/Showtimes/CreateAndUpdate');
+        $cinemaBranch = CinemaBranch::where('code', '=', $branch)->first();
+
+        return Inertia::render('Cinemas/Showtimes/CreateAndUpdate', ['cinemaBranchName' => $cinemaBranch->name]);
     }
 
     public function store(Request $request, string $branch)
@@ -122,7 +127,9 @@ class ShowtimesController extends Controller
                 return redirect()->route('cinemas.branches.showtimes.index', ['branch' => $branch])->with('error', 'Showtimes not found.');
             }
 
-            return Inertia::render('Cinemas/Showtimes/CreateAndUpdate', ['screening' => $screening]);
+            $cinemaBranch = CinemaBranch::where('code', '=', $branch)->first();
+
+            return Inertia::render('Cinemas/Showtimes/CreateAndUpdate', ['screening' => $screening, 'cinemaBranchName' => $cinemaBranch->name]);
         } catch (\Throwable $th) {
             Log::error($th);
             return back()->with('error', 'And error occurred during get screening.');

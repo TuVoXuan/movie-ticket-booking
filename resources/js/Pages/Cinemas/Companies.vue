@@ -1,5 +1,6 @@
 <template>
   <div>
+    <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
     <Box>
       <div class="flex justify-end gap-x-3 mb-4">
         <a-button type="primary" @click="handleOpenModal">Add New Cinema</a-button>
@@ -39,6 +40,7 @@
 </template>
 
 <script>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import { Button, Modal, Table } from 'ant-design-vue';
 import CinemaCompany from '../../components/Modal/CinemaCompany.vue';
 import { router } from '@inertiajs/vue3';
@@ -52,7 +54,8 @@ export default {
     Button,
     CinemaCompany,
     Modal,
-    Table
+    Table,
+    Breadcrumb
   },
   props: ['cinemas'],
   data() {
@@ -72,12 +75,23 @@ export default {
         title: 'Action',
         key: 'action'
       }
+    ];
+    const breadcrumbItems = [
+      {
+        label: 'Cinemas',
+        href: null
+      },
+      {
+        label: 'Companies',
+        href: null
+      },
     ]
     return {
       isOpen: false,
       selectedCinemaCompany: null,
       columns,
-      dayjs
+      dayjs,
+      breadcrumbItems
     }
   },
   methods: {

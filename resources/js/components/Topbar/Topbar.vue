@@ -11,7 +11,7 @@
           <span>Logout</span>
         </a-button>
       </template>
-      <span v-if="$page.props.user">Hi, {{ $page.props.user.name }} !</span>
+      <span v-if="$page.props.curUser">Hi, {{ $page.props.curUser.name }} !</span>
     </a-popover>
   </div>
 </template>

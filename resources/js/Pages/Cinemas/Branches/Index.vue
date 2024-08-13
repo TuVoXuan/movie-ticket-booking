@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
     <div class="flex justify-between mb-3">
       <div class="flex gap-x-3">
@@ -93,6 +94,7 @@
 </template>
 
 <script>
+import Breadcrumb from '../../../components/Breadcrumb/Breadcrumb.vue';
 import { Button, Table, Tooltip, Select } from 'ant-design-vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { getQuery, convertSortOrder, removeEmptyFields } from '../../../utils/utils';
@@ -101,6 +103,7 @@ import { createVNode } from 'vue';
 import { debounce } from 'lodash';
 import dayjs from 'dayjs';
 import axios from 'axios';
+import { breadcrumbItemProps } from 'ant-design-vue/es/breadcrumb/BreadcrumbItem';
 
 export default {
   name: 'CinemaBranchesPage',
@@ -108,7 +111,8 @@ export default {
     Button,
     Table,
     Tooltip,
-    Select
+    Select,
+    Breadcrumb
   },
   props: ['cinemaBranches'],
   computed: {
@@ -157,6 +161,16 @@ export default {
     }
   },
   data() {
+    const breadcrumbItems = [
+      {
+        label: 'Cinemas',
+        href: null
+      },
+      {
+        label: 'Branches',
+        href: null
+      },
+    ]
     return {
       search: null,
       sortInfo: {},
@@ -169,7 +183,8 @@ export default {
         isFetching: false
       },
       region: null,
-      company: null
+      company: null,
+      breadcrumbItems
     }
   },
   methods: {

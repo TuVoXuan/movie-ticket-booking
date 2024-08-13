@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box class="px-5">
     <h1 class="text-2xl text-center font-medium mb-4">Create New Screening</h1>
 
@@ -44,6 +45,7 @@
 </template>
 
 <script setup>
+import Breadcrumb from '../../../components/Breadcrumb/Breadcrumb.vue';
 import { Button, Form, FormItem, Select, DatePicker } from 'ant-design-vue';
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
@@ -53,8 +55,31 @@ import { debounce } from 'lodash';
 import { ref, reactive, onMounted, defineProps, toRefs } from 'vue';
 import dayjs from 'dayjs';
 
-const props = defineProps(['screening']);
-const { screening } = toRefs(props);
+const props = defineProps(['screening', 'cinemaBranchName']);
+const { screening, cinemaBranchName } = toRefs(props);
+
+const breadcrumbItems = ref([
+  {
+    label: 'Cinemas',
+    href: null
+  },
+  {
+    label: 'Branches',
+    href: route('cinemas.branches.index')
+  },
+  {
+    label: cinemaBranchName.value,
+    href: route('cinemas.branches.edit', { branch: route().params.branch })
+  },
+  {
+    label: 'Showtimes',
+    href: route('cinemas.branches.showtimes.index', { branch: route().params.branch })
+  },
+  {
+    label: screening.value ? 'Edit' : 'Create New',
+    href: null
+  }
+]);
 
 const filmTranslationOptions = ref([
   {

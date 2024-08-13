@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
     <div class="flex justify-end mb-4">
       <a-button type="primary" @click="openModal = true">Add New Role</a-button>
@@ -36,6 +37,7 @@
 </template>
 
 <script setup>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import { Table, Button, Modal, Form, FormItem } from 'ant-design-vue';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
@@ -46,6 +48,13 @@ import dayjs from 'dayjs';
 
 const props = defineProps(['roles'])
 const { roles } = toRefs(props);
+
+const breadcrumbItems = ref([
+  {
+    label: 'Roles',
+    href: null
+  }
+])
 
 const columns = ref([
   {

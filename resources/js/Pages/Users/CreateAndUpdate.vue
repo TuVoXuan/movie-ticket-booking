@@ -1,6 +1,7 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
-    <h1 class="text-2xl font-medium text-center mb-4">Create New User</h1>
+    <h1 class="text-2xl font-medium text-center mb-4">{{ user ? 'Update' : 'Create New' }} User</h1>
     <a-form layout="vertical" @submit.prevent="onSubmit" class="grid grid-cols-2 gap-3">
       <a-form-item class="mb-0" label="Name" v-bind="nameProps">
         <a-input :disabled="isSubmitting" size="large" v-model:value="name" placeholder="Enter name" />
@@ -24,6 +25,7 @@
 </template>
 
 <script setup>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import { Button, Form, FormItem, Input, Select, Checkbox } from 'ant-design-vue';
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
@@ -35,6 +37,16 @@ const props = defineProps(['roles', 'user']);
 const { roles, user } = toRefs(props);
 const roleOptions = ref([]);
 const isSubmitting = ref(false);
+const breadcrumbItems = ref([
+  {
+    label: 'Users',
+    href: route('users.index')
+  },
+  {
+    label: user.value ? 'Edit' : 'Create New',
+    href: null
+  }
+])
 
 const schema = yup.object().shape({
   name: yup.string().required(),

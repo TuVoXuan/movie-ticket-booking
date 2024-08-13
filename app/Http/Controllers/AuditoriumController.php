@@ -25,12 +25,14 @@ class AuditoriumController extends Controller
 
         $auditoria = Auditorium::where('cinema_branch_id', '=', $cinemaBranch->id)->get();
 
-        return Inertia::render('Cinemas/Auditoria/Index', ['auditoria' => $auditoria]);
+        return Inertia::render('Cinemas/Auditoria/Index', ['auditoria' => $auditoria, 'cinemaBranchName' => $cinemaBranch->name]);
     }
 
-    public function create()
+    public function create(Request $request, string $branch)
     {
-        return Inertia::render('Cinemas/Auditoria/CreateAndUpdate');
+        $cinemaBranch = CinemaBranch::where('code', '=', $branch)->first();
+
+        return Inertia::render('Cinemas/Auditoria/CreateAndUpdate', ['cinemaBranchName' => $cinemaBranch->name]);
     }
 
     public function store(Request $request, string $branch)
@@ -111,7 +113,9 @@ class AuditoriumController extends Controller
 
             $auditoriumArray = $auditorium->toArray();
             $auditoriumArray['seating_arrangements'] = $seatingArrangements;
-            return Inertia::render('Cinemas/Auditoria/CreateAndUpdate', ['auditorium' => $auditoriumArray]);
+            $cinemaBranch = CinemaBranch::where('code', '=', $branch)->first();
+
+            return Inertia::render('Cinemas/Auditoria/CreateAndUpdate', ['auditorium' => $auditoriumArray, 'cinemaBranchName' => $cinemaBranch->name]);
         } catch (\Throwable $th) {
             Log::error($th);
             return redirect()->route('cinemas.branches.auditoria.index', ['branch' => $branch])->with('error', 'An error occurred during get auditorium.');

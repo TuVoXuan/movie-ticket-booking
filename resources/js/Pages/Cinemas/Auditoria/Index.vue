@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
     <div class="flex justify-end mb-4">
       <a-button type="primary">
@@ -35,14 +36,16 @@
 </template>
 
 <script>
+import Breadcrumb from '../../../components/Breadcrumb/Breadcrumb.vue'
 import { Button, Table, Tooltip } from 'ant-design-vue';
 export default {
   name: 'AuditoriaPage',
   components: {
     Button,
-    Table
+    Table,
+    Breadcrumb
   },
-  props: ['auditoria'],
+  props: ['auditoria', 'cinemaBranchName'],
   data() {
     const columns = [
       {
@@ -67,9 +70,27 @@ export default {
         key: 'action',
       }
     ]
-
+    const breadcrumbItems = [
+      {
+        label: 'Cinemas',
+        href: null
+      },
+      {
+        label: 'Branches',
+        href: route('cinemas.branches.index')
+      },
+      {
+        label: this.cinemaBranchName,
+        href: route('cinemas.branches.edit', { branch: route().params.branch })
+      },
+      {
+        label: 'Auditoriums',
+        href: null
+      }
+    ];
     return {
-      columns
+      columns,
+      breadcrumbItems
     }
   }
 }

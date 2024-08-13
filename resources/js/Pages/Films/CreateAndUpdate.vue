@@ -1,4 +1,6 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
+
   <Box class="px-10 py-8">
     <h1 class="text-2xl text-center font-medium mb-4">Create New Film</h1>
     <a-form @submit.prevent="onSubmit" layout="vertical" class="grid grid-cols-2 gap-x-6 gap-y-3">
@@ -65,8 +67,9 @@
 </template>
 
 <script setup>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import Upload from '../../components/Upload/Upload.vue';
-import { PlusOutlined, LoadingOutlined } from '@ant-design/icons-vue';
+import { PlusOutlined, LoadingOutlined, HeartFilled } from '@ant-design/icons-vue';
 import { Input, Textarea, DatePicker, InputNumber, Select, Form, FormItem, Spin } from 'ant-design-vue';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
@@ -82,6 +85,16 @@ const { film } = toRefs(props);
 const thumbnailURL = film.value?.thumbnail.url;
 const thumbnailBgURL = film.value?.thumbnail_bg.url;
 const isSubmitting = ref(false);
+const breadcrumbItems = ref([
+  {
+    label: 'Films',
+    href: route('films.index')
+  },
+  {
+    label: film.value ? 'Edit' : 'Create',
+    href: null
+  }
+]);
 
 const schema = yup.object().shape({
   releaseDate: yup.date().nullable(),

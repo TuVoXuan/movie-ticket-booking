@@ -1,4 +1,6 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
+
   <Box class="p-4">
     <div class="flex justify-between mb-4">
       <div class="flex gap-x-3">
@@ -74,6 +76,7 @@
 </template>
 
 <script>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import { Button, Table, Input, Modal, message, RangePicker, Tooltip } from 'ant-design-vue';
 import { convertSortOrder, getQuery, removeEmptyFields } from '../../utils/utils';
 import { router } from '@inertiajs/vue3';
@@ -93,7 +96,8 @@ export default {
     Input,
     ShowFilm,
     RangePicker,
-    Tooltip
+    Tooltip,
+    Breadcrumb
   },
   data() {
     const rangePresets = [
@@ -105,6 +109,13 @@ export default {
       { label: 'Next Month', value: [dayjs().add(1, 'month').startOf('month'), dayjs().add(1, 'month').endOf('month')] },
     ];
 
+    const breadcrumbItems = [
+      {
+        label: 'Films',
+        href: null
+      }
+    ]
+
     return {
       dateRange: null,
       search: null,
@@ -112,7 +123,8 @@ export default {
       dayjs,
       filmDetails: {},
       showModal: false,
-      rangePresets
+      rangePresets,
+      breadcrumbItems
     }
   },
   methods: {

@@ -1,4 +1,6 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
+
   <Box class="p-4">
     <div class="flex justify-between mb-4">
       <div>
@@ -41,6 +43,7 @@
 </template>
 
 <script>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import { h } from 'vue';
 import { Button, Table, Input, Modal } from 'ant-design-vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
@@ -56,13 +59,22 @@ export default {
   components: {
     Button,
     Table,
-    Input
+    Input,
+    Breadcrumb
   },
   data() {
+    const breadcrumbItems = [
+      {
+        label: 'Artists',
+        href: null
+      }
+    ];
+
     return {
       search: null,
       sortInfo: {},
-      dayjs
+      dayjs,
+      breadcrumbItems
     }
   },
   methods: {

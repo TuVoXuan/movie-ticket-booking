@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
     <h1 class="text-2xl font-medium text-center mb-4">{{ auditorium ? 'Update' : 'Create New' }} Auditorium</h1>
     <a-form id="auditoriumForm" layout="vertical" @submit.prevent="onSubmit" class="grid grid-cols-2 gap-3 mb-4">
@@ -32,6 +33,7 @@
 </template>
 
 <script setup>
+import Breadcrumb from '../../../components/Breadcrumb/Breadcrumb.vue';
 import { Button, Input, Select, Form, FormItem, InputNumber, SelectOption, notification } from 'ant-design-vue';
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
@@ -40,10 +42,33 @@ import { ref, defineProps, toRefs } from 'vue';
 import AuditoriumLayout from '../../../components/AuditoriumLayout/AuditoriumLayout.vue';
 import { isEmpty } from 'lodash';
 
-const props = defineProps(['auditorium']);
-const { auditorium } = toRefs(props);
+const props = defineProps(['auditorium', 'cinemaBranchName']);
+const { auditorium, cinemaBranchName } = toRefs(props);
 
 const auditoriumLayout = ref(null);
+
+const breadcrumbItems = ref([
+  {
+    label: 'Cinemas',
+    href: null
+  },
+  {
+    label: 'Branches',
+    href: route('cinemas.branches.index')
+  },
+  {
+    label: cinemaBranchName.value,
+    href: route('cinemas.branches.edit', { branch: route().params.branch })
+  },
+  {
+    label: 'Auditoriums',
+    href: route('cinemas.branches.auditoria.index', { branch: route().params.branch })
+  },
+  {
+    label: auditorium.value ? 'Edit' : 'Create New',
+    href: null
+  }
+]);
 
 const seatDirectionOptions = ref([
   {

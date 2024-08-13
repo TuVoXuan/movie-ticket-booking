@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box class="px-5">
     <h1 class="text-2xl text-center font-medium mb-4">Create Cinema Branch</h1>
     <a-form layout="vertical" @submit.prevent="onSubmit" class="grid grid-cols-2 gap-3">
@@ -35,6 +36,7 @@
 </template>
 
 <script setup>
+import Breadcrumb from '../../../components/Breadcrumb/Breadcrumb.vue';
 import { Button, Input, Select, Form, FormItem } from 'ant-design-vue';
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
@@ -45,6 +47,20 @@ import { reactive, onMounted, ref, toRefs, defineProps } from 'vue';
 
 const props = defineProps(['cinemaBranch']);
 const { cinemaBranch } = toRefs(props);
+const breadcrumbItems = ref([
+  {
+    label: 'Cinemas',
+    href: null
+  },
+  {
+    label: 'Branches',
+    href: route('cinemas.branches.index')
+  },
+  {
+    label: cinemaBranch.value ? 'Edit' : 'Create New',
+    href: null
+  },
+]);
 
 const isSubmitting = ref(false);
 

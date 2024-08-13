@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
     <div class="flex justify-between mb-4">
       <div>
@@ -43,6 +44,7 @@
 </template>
 
 <script setup>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import { Table, Button, Modal, Form, FormItem } from 'ant-design-vue';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
@@ -76,6 +78,12 @@ const { genres } = toRefs(props);
 const search = ref();
 const openModal = ref(false);
 const selectedGenre = ref();
+const breadcrumbItems = [
+  {
+    label: 'Genres',
+    href: null
+  }
+]
 
 const schema = yup.object().shape({
   name: yup.string().required()

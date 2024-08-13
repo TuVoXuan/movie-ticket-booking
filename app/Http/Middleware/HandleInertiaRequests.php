@@ -53,7 +53,7 @@ class HandleInertiaRequests extends Middleware
             'success' => session('success'),
             'error' => session('error'),
             'query' => $request->query(),
-            'user' => $user,
+            'curUser' => $user,
             'permissions' => $permissions
         ]);
     }

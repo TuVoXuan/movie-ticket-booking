@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
     <div class="flex justify-between mb-4">
       <div class="flex gap-x-3">
@@ -59,6 +60,7 @@
 </template>
 
 <script>
+import Breadcrumb from '../../components/Breadcrumb/Breadcrumb.vue';
 import { Button, Table, Input, Select, Tooltip, Modal } from 'ant-design-vue';
 import { router } from '@inertiajs/vue3';
 import dayjs from 'dayjs';
@@ -75,16 +77,24 @@ export default {
     Input,
     Select,
     Tooltip,
-    Modal
+    Modal,
+    Breadcrumb
   },
   props: ['users', 'roles'],
   data() {
+    const breadcrumbItems = [
+      {
+        label: 'Users',
+        href: null
+      }
+    ]
     return {
       search: null,
       sortInfo: {},
       dayjs,
       roleOptions: [],
       role: null,
+      breadcrumbItems
     }
   },
   methods: {

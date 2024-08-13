@@ -1,4 +1,5 @@
 <template>
+  <Breadcrumb class="mb-4" :breadcrumb-items="breadcrumbItems" />
   <Box>
     <div class="flex justify-between items-end mb-4">
       <div class="flex gap-3">
@@ -61,12 +62,14 @@
 </template>
 
 <script>
+import Breadcrumb from '../../../components/Breadcrumb/Breadcrumb.vue';
 import { Button, Table, DatePicker, Tooltip, Select } from 'ant-design-vue';
 import { getQuery, removeEmptyFields, convertSortOrder } from '../../../utils/utils';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { createVNode } from 'vue';
 import { router } from '@inertiajs/vue3';
 import dayjs from 'dayjs';
+import { breadcrumbItemProps } from 'ant-design-vue/es/breadcrumb/BreadcrumbItem';
 
 export default {
   name: 'ShowtimesPage',
@@ -75,17 +78,38 @@ export default {
     Table,
     DatePicker,
     Tooltip,
-    Select
+    Select,
+    Breadcrumb
   },
-  props: ['showtimes'],
+  props: ['showtimes', 'cinemaBranchName'],
   data() {
+    const breadcrumbItems = [
+      {
+        label: 'Cinemas',
+        href: null
+      },
+      {
+        label: 'Branches',
+        href: route('cinemas.branches.index')
+      },
+      {
+        label: this.cinemaBranchName,
+        href: route('cinemas.branches.edit', { branch: route().params.branch })
+      },
+      {
+        label: 'Showtimes',
+        href: null
+      }
+    ];
+
     return {
       screeningDate: null,
       search: null,
       sortInfo: {},
       dayjs,
       auditoriaOptions: [],
-      auditorium: null
+      auditorium: null,
+      breadcrumbItems
     }
   },
   methods: {
