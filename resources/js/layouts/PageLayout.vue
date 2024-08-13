@@ -1,16 +1,18 @@
 <template>
   <div class="m-0 flex h-screen overflow-hidden">
-    <div class="w-[200px] shrink-0 h-screen bg-white overflow-y-auto px-3">
+    <div class="lg:block hidden shrink-0 h-screen bg-white overflow-y-auto px-3 transition-all ease-linear"
+      :class="{ 'lg:w-[96px]': collapseMenu, 'lg:w-[200px]': !collapseMenu }">
       <div class="py-1 h-12 mb-3 flex items-center justify-center">
         <Link :href="route('dashboard')" class="font-bold text-2xl text-blue-400">
-        Cineverse
+        {{ collapseMenu ? 'Cs' : 'Cineverse' }}
         </Link>
       </div>
 
-      <Sidebar />
+      <Sidebar :collapsed="collapseMenu" />
     </div>
-    <div class="min-h-screen w-[calc(100%-200px)]">
-      <Topbar />
+    <div class="min-h-screen w-[calc(100%-0px)] lg:w-[calc(100%-200px)] transition-all ease-linear"
+      :class="{ 'lg:w-[calc(100%-96px)]': collapseMenu, 'lg:w-[calc(100%-200px)]': !collapseMenu }">
+      <Topbar @toggle-collapse-menu="onToggleMenu" />
       <div id="main-section" class="shadow-custom px-8 py-4 bg-[#FAFBFC] h-[calc(100%-48px)] overflow-y-auto">
         <div>
           <slot />
@@ -32,6 +34,16 @@ export default {
   components: {
     Topbar,
     Sidebar
+  },
+  data() {
+    return {
+      collapseMenu: false
+    }
+  },
+  methods: {
+    onToggleMenu() {
+      this.collapseMenu = !this.collapseMenu;
+    }
   },
   mounted() {
     router.on('finish', (event) => {

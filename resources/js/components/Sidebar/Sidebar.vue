@@ -1,6 +1,6 @@
 <template>
   <a-menu v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys" mode="inline" :items="items"
-    style="border-inline-end: none" @select="handleSelectNav" />
+    style="border-inline-end: none" @select="handleSelectNav" :inline-collapsed="collapsed" />
 </template>
 
 <script>
@@ -21,6 +21,7 @@ export default {
   components: {
     Menu
   },
+  props: ['collapsed'],
   data() {
     return {
       selectedKeys: [],

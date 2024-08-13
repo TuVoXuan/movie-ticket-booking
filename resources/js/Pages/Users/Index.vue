@@ -3,7 +3,7 @@
   <Box>
     <div class="flex justify-between mb-4">
       <div class="flex gap-x-3">
-        <div>
+        <div class="min-w-[150px]">
           <label>Search</label>
           <a-input class="mt-2" size="large" v-model:value="search" placeholder="Search ..." @input="onSearchChange">
             <template #prefix>
