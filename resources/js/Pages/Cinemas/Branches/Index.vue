@@ -43,7 +43,7 @@
     </div>
 
     <a-table :data-source="cinemaBranches.data" :columns="columns" :pagination="pagination" @change="handleTableChange"
-      :scroll="{ x: 'max-content' }">
+      :scroll="{ x: 1400 }">
       <template #bodyCell="{ column, record }">
         <div v-if="column.key === 'name'">
           <Link :href="route('cinemas.branches.auditoria.index', { branch: record.code })">{{ record.name }}</Link>
@@ -123,7 +123,7 @@ export default {
           title: 'Name',
           dataIndex: 'name',
           key: 'name',
-          maxWidth: 400,
+          width: 80,
           sorter: true,
           sortOrder: this.getSortOrder('name')
         },
@@ -131,22 +131,25 @@ export default {
           title: 'Region',
           dataIndex: 'region',
           key: 'region',
+          width: 60
         },
         {
           title: 'Company',
           dataIndex: 'cinema_company',
           key: 'cinema_company',
-          width: 250
+          width: 80,
         },
         {
           title: 'Address',
           dataIndex: 'address',
           key: 'address',
+          width: 80,
           ellipsis: true,
         },
         {
           title: 'Action',
           key: 'action',
+          width: 40
         },
       ]
     },
