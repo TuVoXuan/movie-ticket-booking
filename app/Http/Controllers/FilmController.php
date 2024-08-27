@@ -68,8 +68,8 @@ class FilmController extends Controller
         'trailer' => 'required|string',
         'directors' => 'required|array',
         'directors.*' => 'integer|exists:artists,id',
-        'producers' => 'required|array',
-        'producers.*' => 'integer|exists:artists,id',
+        'producers' => 'sometimes|array',
+        'producers.*' => 'sometimes|integer|exists:artists,id',
         'actors' => 'required|array',
         'actors.*' => 'integer|exists:artists,id',
         'genres' => 'required|array',
@@ -132,12 +132,14 @@ class FilmController extends Controller
         ]);
       }
 
-      foreach ($body['producers'] as $id) {
-        FilmArtist::create([
-          'film_id' => $film->id,
-          'artist_id' => $id,
-          'artist_type' => ArtistType::Producer->value
-        ]);
+      if (request()->has('producers')) {
+        foreach ($body['producers'] as $id) {
+          FilmArtist::create([
+            'film_id' => $film->id,
+            'artist_id' => $id,
+            'artist_type' => ArtistType::Producer->value
+          ]);
+        }
       }
 
       foreach ($body['actors'] as $id) {

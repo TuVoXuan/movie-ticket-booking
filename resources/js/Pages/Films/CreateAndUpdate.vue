@@ -185,6 +185,7 @@ const onSubmit = handleSubmit((values) => {
 
   if (film.value) {
     const addNewDirectors = getAddNewItems(film.value.directors, values.directors);
+    console.log("addNewDirectors: ", addNewDirectors);
     const addNewProducers = getAddNewItems(film.value.producers, values.producers);
     const addNewActors = getAddNewItems(film.value.actors, values.actors);
     const addNewGenres = getAddNewItems(film.value.genres, values.genres);
@@ -255,8 +256,10 @@ const onSubmit = handleSubmit((values) => {
 
     const arrayFields = ['directors', 'producers', 'actors', 'genres'];
     arrayFields.forEach(field => {
-      for (const item of values[field]) {
-        formData.append(`${field}[]`, item.value)
+      if (values[field] && values[field].length > 0) {
+        for (const item of values[field]) {
+          formData.append(`${field}[]`, item.value)
+        }
       }
     });
 

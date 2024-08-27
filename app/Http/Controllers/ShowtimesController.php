@@ -53,6 +53,8 @@ class ShowtimesController extends Controller
                     $query->where('title', 'LIKE', '%' . $search . '%');
                 })->when($sort, function ($query, $sort) use ($sort_order) {
                     $query->orderBy($sort, $sort_order);
+                }, function ($query) {
+                    $query->orderBy('created_at', 'desc');
                 })->when($screening_date, function ($query) use ($screening_date) {
                     $date = new DateTime($screening_date);
                     $startDate = $date->setTime(0, 0, 0)->format('Y-m-d H:i:s');
