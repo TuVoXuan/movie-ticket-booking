@@ -39,4 +39,5 @@ Route::prefix('v1')->group(function () {
     Route::get('films/{id}', [FilmController::class, 'getFilmDetails'])->name('apiFilms.show');
 
     Route::get('showtimes/branch/{branch}/date/{date}', [ShowtimesController::class, 'getShowtimesByDateAndCinemaBranch'])->name('showtimes.getByDateAndBranch');
+    Route::get('showtimes/{showtime}/seating-arrangement', [ShowtimesController::class, 'getSeatingLayoutByShowtime'])->name('showtimes.getSeatLayoutByShowtime');
 });

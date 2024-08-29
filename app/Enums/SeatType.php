@@ -8,4 +8,5 @@ enum SeatType: string
     case Aisle = 'aisle';
     case Normal = 'seat_normal';
     case VIP = 'seat_vip';
+    case Sold = 'seat_sold';
 }
