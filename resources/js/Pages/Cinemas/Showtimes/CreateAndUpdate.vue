@@ -22,7 +22,8 @@
       </a-form-item>
       <a-form-item class="mb-0" label="Auditorium" v-bind="auditoriumProps">
         <a-select :disabled="isSubmitting" size="large" label-in-value v-model:value="auditorium" show-search
-          placeholder="Select auditorium" :options="auditoriaOptions.data" :filter-option="false">
+          placeholder="Select auditorium" :options="auditoriaOptions.data" :filter-option="false"
+          @change="onChangeAuditorium">
           <template v-if="auditoriaOptions.isFetching" #notFoundContent>
             <a-spin size="small" />
           </template>
@@ -38,15 +39,27 @@
           placeholder="Select film translation" :options="filmTranslationOptions" :filter-option="false">
         </a-select>
       </a-form-item>
+      <a-form-item v-if="showSeatPriceInput(CellType.SeatNormal)" class="mb-0" label="Normal seat price"
+        v-bind="normalSeatPriceProps">
+        <a-input-number class="w-full" :disabled="isSubmitting" size="large" v-model:value="normalSeatPrice"
+          placeholder="Enter normal seat price">
+        </a-input-number>
+      </a-form-item>
+      <a-form-item v-if="showSeatPriceInput(CellType.SeatVIP)" class="mb-0" label="VIP seat price"
+        v-bind="vipSeatPriceProps">
+        <a-input-number class="w-full" :disabled="isSubmitting" size="large" v-model:value="vipSeatPrice"
+          placeholder="Enter VIP seat price">
+        </a-input-number>
+      </a-form-item>
 
-      <a-button :loading="isSubmitting" type="primary" html-type="submit" class="w-fit">Save</a-button>
+      <a-button :loading="isSubmitting" type="primary" html-type="submit" class="w-fit col-start-1">Save</a-button>
     </a-form>
   </Box>
 </template>
 
 <script setup>
 import Breadcrumb from '../../../components/Breadcrumb/Breadcrumb.vue';
-import { Button, Form, FormItem, Select, DatePicker } from 'ant-design-vue';
+import { Button, Form, FormItem, Select, DatePicker, InputNumber } from 'ant-design-vue';
 import * as yup from 'yup';
 import { useForm } from 'vee-validate';
 import { router } from '@inertiajs/vue3';
@@ -54,6 +67,7 @@ import axios from 'axios';
 import { debounce } from 'lodash';
 import { ref, reactive, onMounted, defineProps, toRefs } from 'vue';
 import dayjs from 'dayjs';
+import { CellType } from '../../../constant/enum';
 
 const props = defineProps(['screening', 'cinemaBranchName']);
 const { screening, cinemaBranchName } = toRefs(props);
@@ -92,12 +106,15 @@ const filmTranslationOptions = ref([
   }
 ])
 const isSubmitting = ref(false);
+const seatTypes = ref(null);
 
 const schema = yup.object().shape({
   film: yup.object().required(),
   auditorium: yup.object().required(),
   screeningTime: yup.date().required(),
-  filmTranslation: yup.object().required()
+  filmTranslation: yup.object().required(),
+  normalSeatPrice: yup.number().nullable(),
+  vipSeatPrice: yup.number().nullable()
 });
 
 const antConfig = (state) => ({
@@ -123,7 +140,9 @@ const { defineField, handleSubmit, errors, resetForm } = useForm({
     },
     screeningTime: screening.value?.screening_time && dayjs(screening.value.screening_time),
     filmTranslation: screening.value?.film_translation &&
-      filmTranslationOptions.value.find((option) => option.value === screening.value?.film_translation)
+      filmTranslationOptions.value.find((option) => option.value === screening.value?.film_translation),
+    normalSeatPrice: screening.value?.ticket_prices && screening.value.ticket_prices.find((item) => item.seat_type === CellType.SeatNormal)?.price,
+    vipSeatPrice: screening.value?.ticket_prices && screening.value.ticket_prices.find((item) => item.seat_type === CellType.SeatVIP)?.price
   }
 });
 
@@ -131,6 +150,8 @@ const [film, filmProps] = defineField('film', antConfig);
 const [auditorium, auditoriumProps] = defineField('auditorium', antConfig);
 const [screeningTime, screeningTimeProps] = defineField('screeningTime', antConfig);
 const [filmTranslation, filmTranslationProps] = defineField('filmTranslation', antConfig);
+const [normalSeatPrice, normalSeatPriceProps] = defineField('normalSeatPrice', antConfig);
+const [vipSeatPrice, vipSeatPriceProps] = defineField('vipSeatPrice', antConfig);
 
 const onSubmit = handleSubmit((values) => {
   isSubmitting.value = true;
@@ -138,7 +159,9 @@ const onSubmit = handleSubmit((values) => {
     film: values.film.value,
     auditorium: values.auditorium.value,
     film_translation: values.filmTranslation.value,
-    screening_time: values.screeningTime.format('YYYY-MM-DD HH:mm')
+    screening_time: values.screeningTime.format('YYYY-MM-DD HH:mm'),
+    normal_seat_price: showSeatPriceInput(CellType.SeatNormal) ? values.normalSeatPrice : undefined,
+    vip_seat_price: showSeatPriceInput(CellType.SeatVIP) ? values.vipSeatPrice : undefined
   }
   const branch = route().params.branch;
   if (screening.value) {
@@ -207,14 +230,37 @@ async function handleGetAuditoria() {
   }
 }
 
+async function handleGetSeatType(auditorium) {
+  try {
+    if (auditorium) {
+      const response = await axios.get(route('apiAuditoria.getSeatTypes', auditorium));
+      seatTypes.value = response.data.data;
+    }
+  } catch (error) {
+    console.log("error: ", error);
+  }
+}
+
+function onChangeAuditorium(value, option) {
+  handleGetSeatType(value.value);
+}
+
 const disabledDate = (current) => {
   // Can not select days before today and today
   return current < dayjs().subtract(1, 'day');
 };
 
+const showSeatPriceInput = (seatType) => {
+  return (seatTypes.value && seatTypes.value.find((item) => item.seat_type === seatType))
+  // || (screening.value?.ticket_prices && screening.value.ticket_prices.find((item) => item.seat_type === seatType))
+}
+
 onMounted(() => {
   handleGetFilms();
   handleGetAuditoria();
+  if (screening.value) {
+    handleGetSeatType(screening.value.auditorium_id);
+  }
 })
 
 </script>

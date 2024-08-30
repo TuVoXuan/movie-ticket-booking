@@ -40,4 +40,6 @@ Route::prefix('v1')->group(function () {
 
     Route::get('showtimes/branch/{branch}/date/{date}', [ShowtimesController::class, 'getShowtimesByDateAndCinemaBranch'])->name('showtimes.getByDateAndBranch');
     Route::get('showtimes/{showtime}/seating-arrangement', [ShowtimesController::class, 'getSeatingLayoutByShowtime'])->name('showtimes.getSeatLayoutByShowtime');
+
+    Route::get('/auditoria/{auditorium}', [AuditoriumController::class, 'getSeatTypes'])->name('apiAuditoria.getSeatTypes');
 });

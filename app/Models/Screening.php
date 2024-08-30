@@ -25,4 +25,8 @@ class Screening extends Model
     {
         return $this->hasMany(TicketOrder::class);
     }
+    public function ticketPrices()
+    {
+        return $this->hasMany(TicketPrice::class);
+    }
 }
