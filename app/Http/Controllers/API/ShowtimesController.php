@@ -70,7 +70,13 @@ class ShowtimesController extends BaseController
     public function getSeatingLayoutByShowtime(Request $request, string $showtimeId)
     {
         try {
-            $showtime = Screening::find($showtimeId);
+            $showtime = Screening::with([
+                'ticketPrices' => function ($query) {
+                    $query->select('id', 'screening_id', 'seat_type', 'price');
+                }
+            ])
+                ->find($showtimeId);
+
             if (!$showtime) {
                 return $this->sendError('Showtime not found.', [], Response::HTTP_NOT_FOUND);
             }
@@ -112,7 +118,8 @@ class ShowtimesController extends BaseController
             $groupedSeatingLayout = (object) $groupedSeatingLayout;
             $finalData = (object) [
                 'seatingLayout' => $groupedSeatingLayout,
-                'auditorium' => $auditorium
+                'auditorium' => $auditorium,
+                'ticketPrices' => $showtime->ticketPrices
             ];
             return $this->sendResponse($finalData, 'Get seating layout by showtime successfully.');
         } catch (\Exception $e) {

@@ -5,6 +5,7 @@ use App\Http\Controllers\API\AuditoriumController;
 use App\Http\Controllers\API\CinemaController;
 use App\Http\Controllers\API\FilmController;
 use App\Http\Controllers\API\GenreController;
+use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\RegionController;
 use App\Http\Controllers\API\ShowtimesController;
 use Illuminate\Http\Request;
@@ -42,4 +43,7 @@ Route::prefix('v1')->group(function () {
     Route::get('showtimes/{showtime}/seating-arrangement', [ShowtimesController::class, 'getSeatingLayoutByShowtime'])->name('showtimes.getSeatLayoutByShowtime');
 
     Route::get('/auditoria/{auditorium}', [AuditoriumController::class, 'getSeatTypes'])->name('apiAuditoria.getSeatTypes');
+
+    Route::post('/orders', [OrderController::class, 'store'])->name('apiOrders.store');
+    Route::post('/orders/result-payment-momo', [OrderController::class, 'resultPayWithMomo'])->name('apiOrders.resultPayWithMomo');
 });
