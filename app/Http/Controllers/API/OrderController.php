@@ -3,14 +3,20 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\API\BaseController;
+use App\Models\Screening;
+use App\Models\TicketOrder;
+use App\Models\TicketOrderItem;
+use App\Models\TicketPrice;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends BaseController
 {
-    public function paymentWithMomo(int $orderId, string $orderInfo, int $amount)
+    public function paymentWithMomo(string $orderId, string $orderInfo, int $amount)
     {
         try {
             $partnerCode = env('MOMO_PARTNER_CODE');
@@ -49,7 +55,6 @@ class OrderController extends BaseController
             ])->post($momoCreatePaymentURL, $data);
 
             $responseData = json_decode($response->body());
-            Log::info($response->body());
             return $responseData->payUrl;
         } catch (\Exception $e) {
             Log::error($e);
@@ -61,7 +66,13 @@ class OrderController extends BaseController
         try {
             $body = $request->all();
             if ($body['resultCode'] !== 0) {
-                //delete order;
+                $exploreOrderId = explode('cnv_order_', $body['orderId']);
+                if (count($exploreOrderId) > 0) {
+                    $orderId = $exploreOrderId[1];
+                    TicketOrderItem::where('ticket_order_id', '=', $orderId)->delete();
+                    TicketOrder::find($orderId)->delete();
+                }
+                return $this->sendResponse('', 'Payment with momo was failed.');
             }
             return $this->sendResponse('', 'Payment with Momo successfully.');
         } catch (\Exception $e) {
@@ -73,7 +84,50 @@ class OrderController extends BaseController
     public function store(Request $request)
     {
         try {
-            $momoPayUrl = $this->paymentWithMomo(time(), 'test order info Cineverse', '123000');
+            $body = $request->all();
+            $validated = Validator::make($body, [
+                'screening_id' => 'required|numeric|exists:screenings,id',
+                'seatings' => 'required|array|min:1',
+                'seatings.*.id' => 'required|numeric|exists:seating_arrangements,id',
+                'seatings.*.label' => 'required|string',
+                'seatings.*.seat_type' => 'required|string',
+            ]);
+            if ($validated->fails()) {
+                return $this->sendError($validated->errors());
+            }
+            $screening = Screening::with('film', 'auditorium.cinemaBranch')->find($body['screening_id']);
+            $ticketPrices = TicketPrice::where('screening_id', '=', $body['screening_id'])->get();
+            $total = 0;
+            foreach ($body['seatings'] as $seat) {
+                $ticketPrice = $ticketPrices->first(function ($item) use ($seat) {
+                    return $item->seat_type === $seat['seat_type'];
+                });
+                if ($ticketPrice) {
+                    $total += $ticketPrice['price'];
+                }
+            }
+            $newOrder = TicketOrder::create([
+                'screening_id' => $body['screening_id'],
+                'total' => $total
+            ]);
+            foreach ($body['seatings'] as $seat) {
+                $ticketPrice = $ticketPrices->first(function ($item) use ($seat) {
+                    return $item->seat_type === $seat['seat_type'];
+                });
+                if ($ticketPrice) {
+                    TicketOrderItem::create([
+                        'ticket_order_id' => $newOrder->id,
+                        'seating_arrangement_id' => $seat['id'],
+                        'price' => $ticketPrice['price']
+                    ]);
+                }
+            }
+
+            $orderDescription = 'Vé xem phim: ' . $screening->film->title .  '. Xuất chiếu: ' . Carbon::parse($screening->screening_time)->format('H:i d/m/Y') . '. Số ghế: '
+                . array_reduce($body['seatings'], function ($carry, $item) {
+                    return strlen($carry) > 0 ? $carry . ',' . $item['label'] : $item['label'];
+                }, '') . '. Phòng chiếu ' . $screening->auditorium->name . ', rạp ' . $screening->auditorium->cinemaBranch->name;
+            $momoPayUrl = $this->paymentWithMomo('cnv_order_' . $newOrder->id, $orderDescription, $total);
             return $this->sendResponse($momoPayUrl, 'Create order successfully.');
         } catch (\Exception $th) {
             Log::error($th);

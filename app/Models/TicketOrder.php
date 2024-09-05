@@ -9,6 +9,8 @@ class TicketOrder extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['user_id', 'screening_id', 'total'];
+
     public function user()
     {
         return $this->belongsTo(User::class);
