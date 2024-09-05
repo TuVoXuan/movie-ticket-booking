@@ -95,6 +95,31 @@ class OrderController extends BaseController
             if ($validated->fails()) {
                 return $this->sendError($validated->errors());
             }
+
+            $ticketItems = TicketOrderItem::whereHas('ticketOrder', function ($query) use ($body) {
+                $query->where('screening_id', '=', $body['screening_id']);
+            })->get();
+
+            Log::info($ticketItems->toArray());
+
+            $orderedSeat = false;
+
+            $seatingsCollect = collect($body['seatings']);
+            foreach ($ticketItems as $ticketItem) {
+                $foundOrderedSeat = $seatingsCollect->first(function ($seat) use ($ticketItem) {
+                    return $seat['id'] === $ticketItem['seating_arrangement_id'];
+                });
+                if ($foundOrderedSeat) {
+                    Log::info($foundOrderedSeat);
+                    $orderedSeat = true;
+                    break;
+                }
+            }
+
+            if ($orderedSeat) {
+                return $this->sendError('Seats have been ordered by someone.', [], Response::HTTP_BAD_REQUEST);
+            }
+
             $screening = Screening::with('film', 'auditorium.cinemaBranch')->find($body['screening_id']);
             $ticketPrices = TicketPrice::where('screening_id', '=', $body['screening_id'])->get();
             $total = 0;
@@ -106,6 +131,7 @@ class OrderController extends BaseController
                     $total += $ticketPrice['price'];
                 }
             }
+
             $newOrder = TicketOrder::create([
                 'screening_id' => $body['screening_id'],
                 'total' => $total
