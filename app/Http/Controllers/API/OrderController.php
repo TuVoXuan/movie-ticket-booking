@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use App\Services\SmsService;
 
 class OrderController extends BaseController
 {
@@ -73,6 +74,11 @@ class OrderController extends BaseController
             if ($body['resultCode'] !== 0 && count($exploreOrderId) > 0) {
                 $orderId = $exploreOrderId[1];
 
+                //Test send sms
+                $order = TicketOrder::with('screening.auditorium.cinemaBranch', 'ticketOrderItems.seatingArrangement')->find($orderId);
+
+
+                //end test send sms
                 TicketOrderItem::where('ticket_order_id', '=', $orderId)->delete();
                 TicketOrder::find($orderId)->delete();
                 return $this->sendResponse('', 'Payment with momo was failed.');
@@ -92,6 +98,15 @@ class OrderController extends BaseController
                     $order->screening->auditorium->name,
                     $order->screening->auditorium->cinemaBranch->name
                 ));
+
+                $smsContent = 'Vé xem phim: ' . $order->screening->film->title .  '. Xuất chiếu: ' . Carbon::parse($order->screening->screening_time)
+                    ->format('H:i d/m/Y') . '. Số ghế: '
+                    . $order->ticketOrderItems->map(function ($item) {
+                        return $item->seatingArrangement->label;
+                    })->implode(', ') . '. Phòng chiếu ' . $order->screening->auditorium->name . ', rạp ' . $order->screening->auditorium->cinemaBranch->name;
+
+                $smsService = new SmsService();
+                $smsService->sendSms($order->phone, $smsContent);
             }
 
             return $this->sendResponse('', 'Payment with Momo successfully.');
