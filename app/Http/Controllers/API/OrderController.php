@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\API\BaseController;
+use App\Mail\TicketOrderMail;
 use App\Models\Screening;
 use App\Models\TicketOrder;
 use App\Models\TicketOrderItem;
 use App\Models\TicketPrice;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends BaseController
@@ -65,15 +68,32 @@ class OrderController extends BaseController
     {
         try {
             $body = $request->all();
-            if ($body['resultCode'] !== 0) {
-                $exploreOrderId = explode('cnv_order_', $body['orderId']);
-                if (count($exploreOrderId) > 0) {
-                    $orderId = $exploreOrderId[1];
-                    TicketOrderItem::where('ticket_order_id', '=', $orderId)->delete();
-                    TicketOrder::find($orderId)->delete();
-                }
+
+            $exploreOrderId = explode('cnv_order_', $body['orderId']);
+            if ($body['resultCode'] !== 0 && count($exploreOrderId) > 0) {
+                $orderId = $exploreOrderId[1];
+
+                TicketOrderItem::where('ticket_order_id', '=', $orderId)->delete();
+                TicketOrder::find($orderId)->delete();
                 return $this->sendResponse('', 'Payment with momo was failed.');
             }
+            if (count($exploreOrderId) > 0) {
+                $orderId = $exploreOrderId[1];
+
+                $order = TicketOrder::with('screening.auditorium.cinemaBranch', 'ticketOrderItems.seatingArrangement')->find($orderId);
+
+                Mail::to($order->email)->send(new TicketOrderMail(
+                    $order->screening->film->title,
+                    Carbon::parse($order->screening->screening_time)
+                        ->format('H:i d/m/Y'),
+                    $order->ticketOrderItems->map(function ($item) {
+                        return $item->seatingArrangement->label;
+                    })->implode(', '),
+                    $order->screening->auditorium->name,
+                    $order->screening->auditorium->cinemaBranch->name
+                ));
+            }
+
             return $this->sendResponse('', 'Payment with Momo successfully.');
         } catch (\Exception $e) {
             Log::error($e);
@@ -91,16 +111,23 @@ class OrderController extends BaseController
                 'seatings.*.id' => 'required|numeric|exists:seating_arrangements,id',
                 'seatings.*.label' => 'required|string',
                 'seatings.*.seat_type' => 'required|string',
+                'user_info' => 'nullable|array',
+                'user_info.email' => 'nullable|email',
+                'user_info.phone' => 'nullable|string',
+                'user_info.name' => 'nullable|string',
             ]);
             if ($validated->fails()) {
                 return $this->sendError($validated->errors());
             }
 
+            $screening = Screening::with('film', 'auditorium.cinemaBranch')->find($body['screening_id']);
+            // if (Carbon::now()->gte(Carbon::parse($screening->screening_time))) {
+            //     return $this->sendError('Time to buy tickets has expired.', [], Response::HTTP_BAD_REQUEST);
+            // }
+
             $ticketItems = TicketOrderItem::whereHas('ticketOrder', function ($query) use ($body) {
                 $query->where('screening_id', '=', $body['screening_id']);
             })->get();
-
-            Log::info($ticketItems->toArray());
 
             $orderedSeat = false;
 
@@ -110,7 +137,6 @@ class OrderController extends BaseController
                     return $seat['id'] === $ticketItem['seating_arrangement_id'];
                 });
                 if ($foundOrderedSeat) {
-                    Log::info($foundOrderedSeat);
                     $orderedSeat = true;
                     break;
                 }
@@ -120,7 +146,6 @@ class OrderController extends BaseController
                 return $this->sendError('Seats have been ordered by someone.', [], Response::HTTP_BAD_REQUEST);
             }
 
-            $screening = Screening::with('film', 'auditorium.cinemaBranch')->find($body['screening_id']);
             $ticketPrices = TicketPrice::where('screening_id', '=', $body['screening_id'])->get();
             $total = 0;
             foreach ($body['seatings'] as $seat) {
@@ -132,10 +157,18 @@ class OrderController extends BaseController
                 }
             }
 
-            $newOrder = TicketOrder::create([
-                'screening_id' => $body['screening_id'],
-                'total' => $total
-            ]);
+            $newOrder = null;
+            if ($body['user_info']) {
+                $newOrder = TicketOrder::create(attributes: [
+                    'screening_id' => $body['screening_id'],
+                    'total' => $total,
+                    'email' => $body['user_info']['email'],
+                    'phone' => $body['user_info']['phone'],
+                    'name' => $body['user_info']['name']
+                ]);
+            }
+
+
             foreach ($body['seatings'] as $seat) {
                 $ticketPrice = $ticketPrices->first(function ($item) use ($seat) {
                     return $item->seat_type === $seat['seat_type'];
