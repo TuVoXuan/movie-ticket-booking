@@ -46,4 +46,6 @@ Route::prefix('v1')->group(function () {
 
     Route::post('/orders', [OrderController::class, 'store'])->name('apiOrders.store');
     Route::post('/orders/result-payment-momo', [OrderController::class, 'resultPayWithMomo'])->name('apiOrders.resultPayWithMomo');
+    Route::get('/orders/check-status/{order}', [OrderController::class, 'checkOrder'])->name('apiOrders.checkOrder');
+    Route::get('/orders/{order}', [OrderController::class, 'getOrderInfo'])->name('apiOrders.getOrderInfo');
 });

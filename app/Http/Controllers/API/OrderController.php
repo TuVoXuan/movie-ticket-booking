@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Enums\OrderStatus;
 use App\Http\Controllers\API\BaseController;
 use App\Mail\TicketOrderMail;
 use App\Models\Screening;
@@ -20,18 +21,18 @@ use App\Services\SmsService;
 
 class OrderController extends BaseController
 {
-    public function paymentWithMomo(string $orderId, string $orderInfo, int $amount)
+    public function paymentWithMomo(string $orderId, string $orderInfo, int $amount, string $redirectURL)
     {
         try {
             $partnerCode = env('MOMO_PARTNER_CODE');
             $accessKey = env('MOMO_ACCESS_KEY');
             $secretKey = env('MOMO_SECRET_KEY');
             $requestId = $partnerCode . time();
-            $redirectURL = env('MOMO_REDIRECT_URL');
             $ipnURL = env('MOMO_IPN_URL');
             $requestType = 'captureWallet';
             $extraData = '';
-            $rawSignature = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData . "&ipnUrl=" . $ipnURL . "&orderId=" . $orderId . "&orderInfo=" . $orderInfo . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $redirectURL . "&requestId=" . $requestId . "&requestType=" . $requestType;
+            $domainFE = env('MOMO_DOMAIN_FE');
+            $rawSignature = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData . "&ipnUrl=" . $ipnURL . "&orderId=" . $orderId . "&orderInfo=" . $orderInfo . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $domainFE . $redirectURL . "&requestId=" . $requestId . "&requestType=" . $requestType;
             $signature = hash_hmac("sha256", $rawSignature, $secretKey);
             $autoCapture = true;
 
@@ -46,7 +47,7 @@ class OrderController extends BaseController
                 'requestType' => $requestType,
                 'ipnUrl' => $ipnURL,
                 'lang' => 'vi',
-                'redirectUrl' => $redirectURL,
+                'redirectUrl' => $domainFE . $redirectURL,
                 'autoCapture' => $autoCapture,
                 'extraData' => $extraData,
                 'signature' => $signature
@@ -59,6 +60,7 @@ class OrderController extends BaseController
             ])->post($momoCreatePaymentURL, $data);
 
             $responseData = json_decode($response->body());
+            Log::info($response->body());
             return $responseData->payUrl;
         } catch (\Exception $e) {
             Log::error($e);
@@ -74,13 +76,16 @@ class OrderController extends BaseController
             if ($body['resultCode'] !== 0 && count($exploreOrderId) > 0) {
                 $orderId = $exploreOrderId[1];
 
-                //Test send sms
-                $order = TicketOrder::with('screening.auditorium.cinemaBranch', 'ticketOrderItems.seatingArrangement')->find($orderId);
+                $ticketOrder = TicketOrder::find($orderId);
+                if ($ticketOrder->user) {
+                    $ticketOrder->update([
+                        'status' => OrderStatus::Cancel->value
+                    ]);
+                } else {
+                    TicketOrderItem::where('ticket_order_id', '=', $orderId)->delete();
+                    TicketOrder::find($orderId)->delete();
+                }
 
-
-                //end test send sms
-                TicketOrderItem::where('ticket_order_id', '=', $orderId)->delete();
-                TicketOrder::find($orderId)->delete();
                 return $this->sendResponse('', 'Payment with momo was failed.');
             }
             if (count($exploreOrderId) > 0) {
@@ -98,6 +103,10 @@ class OrderController extends BaseController
                     $order->screening->auditorium->name,
                     $order->screening->auditorium->cinemaBranch->name
                 ));
+
+                $order->update([
+                    'status' => OrderStatus::Paid->value
+                ]);
 
                 $smsContent = 'Vé xem phim: ' . $order->screening->film->title .  '. Xuất chiếu: ' . Carbon::parse($order->screening->screening_time)
                     ->format('H:i d/m/Y') . '. Số ghế: '
@@ -130,6 +139,7 @@ class OrderController extends BaseController
                 'user_info.email' => 'nullable|email',
                 'user_info.phone' => 'nullable|string',
                 'user_info.name' => 'nullable|string',
+                'redirect_url' => 'required|string'
             ]);
             if ($validated->fails()) {
                 return $this->sendError($validated->errors());
@@ -141,7 +151,8 @@ class OrderController extends BaseController
             // }
 
             $ticketItems = TicketOrderItem::whereHas('ticketOrder', function ($query) use ($body) {
-                $query->where('screening_id', '=', $body['screening_id']);
+                $query->where('screening_id', '=', $body['screening_id'])
+                    ->where('status', '=', OrderStatus::Paid->value);
             })->get();
 
             $orderedSeat = false;
@@ -179,10 +190,10 @@ class OrderController extends BaseController
                     'total' => $total,
                     'email' => $body['user_info']['email'],
                     'phone' => $body['user_info']['phone'],
-                    'name' => $body['user_info']['name']
+                    'name' => $body['user_info']['name'],
+                    'status' => OrderStatus::Pending->value
                 ]);
             }
-
 
             foreach ($body['seatings'] as $seat) {
                 $ticketPrice = $ticketPrices->first(function ($item) use ($seat) {
@@ -201,11 +212,38 @@ class OrderController extends BaseController
                 . array_reduce($body['seatings'], function ($carry, $item) {
                     return strlen($carry) > 0 ? $carry . ',' . $item['label'] : $item['label'];
                 }, '') . '. Phòng chiếu ' . $screening->auditorium->name . ', rạp ' . $screening->auditorium->cinemaBranch->name;
-            $momoPayUrl = $this->paymentWithMomo('cnv_order_' . $newOrder->id, $orderDescription, $total);
+            $momoPayUrl = $this->paymentWithMomo('cnv_order_' . $newOrder->id, $orderDescription, $total, $body['redirect_url']);
             return $this->sendResponse($momoPayUrl, 'Create order successfully.');
-        } catch (\Exception $th) {
-            Log::error($th);
+        } catch (\Exception $e) {
+            Log::error($_ENV);
             return $this->sendError('An error occurred during create order.', [], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function checkOrder(Request $request, int $orderId)
+    {
+        try {
+            $order = TicketOrder::find($orderId);
+            if ($order) {
+                if ($order->status === OrderStatus::Paid->value) {
+                    return $this->sendResponse(true, 'Make payment for order successfully.');
+                }
+            }
+            return $this->sendResponse(false, 'Make payment for order failed.');
+        } catch (\Exception $e) {
+            Log::error($e);
+            return $this->sendError('An error occurred during check order.', [], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function getOrderInfo(Request $request, int $orderId)
+    {
+        try {
+            $order = TicketOrder::with('screening.auditorium.cinemaBranch', 'screening.film', 'ticketOrderItems.seatingArrangement')->find($orderId);
+            return $this->sendResponse($order, 'get order info successfully.');
+        } catch (\Exception $e) {
+            Log::error($e);
+            return $this->sendError('An error occurred get order detail.', [], Response::HTTP_BAD_REQUEST);
         }
     }
 }
