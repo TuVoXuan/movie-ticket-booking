@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Enums\SeatType;
 use App\Http\Controllers\Controller;
 use App\Models\Auditorium;
+use App\Models\Film;
 use App\Models\Screening;
 use App\Models\SeatingArrangement;
 use App\Models\TicketOrderItem;
@@ -125,6 +126,88 @@ class ShowtimesController extends BaseController
         } catch (\Exception $e) {
             Log::error($e);
             return $this->sendError('An error occurred during get seating layout by showtime', [], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function getShowtimesByFilm(Request $request, string $filmCode)
+    {
+        try {
+            $film = Film::where('code', '=', $filmCode)->first();
+            if (!$film) {
+                return $this->sendError('Film not found', [], Response::HTTP_NOT_FOUND);
+            }
+
+            $startDate = Carbon::now();
+            $endDate = Carbon::now()->addDays(7);
+            $showtimes = Screening::with('auditorium.cinemaBranch.cinemaCompany.logo')->whereHas('film', function ($query) use ($filmCode) {
+                $query->where('code', '=', $filmCode);
+            })
+                ->whereBetween('screening_time', [$startDate, $endDate])
+                ->get();
+
+            $convertedData = [];
+
+            foreach ($showtimes as $item) {
+                // Ensure the necessary relationships are loaded
+                if (
+                    $item->auditorium &&
+                    $item->auditorium->cinemaBranch &&
+                    $item->auditorium->cinemaBranch->cinemaCompany
+                ) {
+                    $cinemaCompanyId = $item->auditorium->cinemaBranch->cinemaCompany->id;
+                    $cinemaBranchId = $item->auditorium->cinemaBranch->id;
+                    $filmTranslation = $item->film_translation; // Assuming this is a property of the Screening model
+
+                    // Find or create the cinema company
+                    if (!isset($convertedData[$cinemaCompanyId])) {
+                        $convertedData[$cinemaCompanyId] = [
+                            'id' => $cinemaCompanyId,
+                            'name' => $item->auditorium->cinemaBranch->cinemaCompany->name,
+                            'logo' => $item->auditorium->cinemaBranch->cinemaCompany->logo,
+                            'code' => $item->auditorium->cinemaBranch->cinemaCompany->code,
+                            'cinemaBranches' => [], // Initialize as an array
+                        ];
+                    }
+
+                    // Find or create the cinema branch
+                    $branchData = [
+                        'id' => $cinemaBranchId,
+                        'name' => $item->auditorium->cinemaBranch->name,
+                        'address' => $item->auditorium->cinemaBranch->address ?? '',
+                        'region_id' => $item->auditorium->cinemaBranch->region_id ?? 0,
+                        'cinema_company_id' => $cinemaCompanyId,
+                        'code' => $item->auditorium->cinemaBranch->code,
+                        'translation' => [
+                            'vietsub' => [],
+                            'voiceover' => [],
+                        ],
+                    ];
+
+                    // Add the branch to the cinema company
+                    $convertedData[$cinemaCompanyId]['cinemaBranches'][] = $branchData; // Append to array
+
+                    // Add the showtime to the appropriate translation array
+                    $lastBranchIndex = count($convertedData[$cinemaCompanyId]['cinemaBranches']) - 1;
+                    $convertedData[$cinemaCompanyId]['cinemaBranches'][$lastBranchIndex]['translation'][$filmTranslation][] = [
+                        'id' => $item->id,
+                        'film_id' => $item->film_id,
+                        'auditorium_id' => $item->auditorium_id,
+                        'screening_time' => $item->screening_time,
+                        'film_translation' => $item->film_translation,
+                    ];
+                } else {
+                    // Handle the case where the expected structure is not met
+                    // Log::warning('Missing keys in item', ['item' => $item]);
+                }
+            }
+
+            // Reset the keys to get a sequential array
+            $convertedData = array_values($convertedData);
+
+            return $this->sendResponse($convertedData, 'Get showtimes by film successfully.');
+        } catch (\Exception $e) {
+            Log::error($e);
+            return $this->sendError('An error occurred during get showtimes by film.', [], Response::HTTP_BAD_REQUEST);
         }
     }
 }

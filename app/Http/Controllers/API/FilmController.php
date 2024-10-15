@@ -9,10 +9,13 @@ use Illuminate\Support\Facades\Log;
 
 class FilmController extends BaseController
 {
-    public function getFilmDetails(string $id)
+    public function getFilmDetails(string $idOrCode)
     {
         try {
-            $film = Film::with(['genres', 'directors', 'producers', 'actors', 'thumbnail', 'thumbnailBg'])->find($id);
+            $film = Film::with(['genres', 'directors', 'producers', 'actors', 'thumbnail', 'thumbnailBg'])->where('id', $idOrCode)
+                ->orWhere('code', $idOrCode)
+                ->first();
+
             if (!$film) {
                 return $this->sendError('Film not found', [], Response::HTTP_NOT_FOUND);
             }
@@ -20,7 +23,7 @@ class FilmController extends BaseController
             return $this->sendResponse($film, 'Get film details successfully.');
         } catch (\Exception $e) {
             Log::error($e);
-            $this->sendError('An error occurred during get film details', [], Response::HTTP_BAD_GATEWAY);
+            return $this->sendError('An error occurred during get film details', [], Response::HTTP_BAD_GATEWAY);
         }
     }
 
@@ -37,7 +40,7 @@ class FilmController extends BaseController
             return $this->sendResponse($films, 'Get list options films successfully.');
         } catch (\Exception $e) {
             Log::error($e);
-            $this->sendError('An error occurred during get list options films.', [], Response::HTTP_BAD_REQUEST);
+            return  $this->sendError('An error occurred during get list options films.', [], Response::HTTP_BAD_REQUEST);
         }
     }
 }

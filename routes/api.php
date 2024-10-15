@@ -37,10 +37,11 @@ Route::prefix('v1')->group(function () {
     Route::get('cinemas/branches/region/{region}', [CinemaController::class, 'getAllCinemaBranchByRegion'])->name('apiCinemas.branches.regions.getAll');
 
     Route::get('films/options', [FilmController::class, 'getListOptionsFilm'])->name('apiFilms.options');
-    Route::get('films/{id}', [FilmController::class, 'getFilmDetails'])->name('apiFilms.show');
+    Route::get('films/{idOrCode}', [FilmController::class, 'getFilmDetails'])->name('apiFilms.show');
 
-    Route::get('showtimes/branch/{branch}/date/{date}', [ShowtimesController::class, 'getShowtimesByDateAndCinemaBranch'])->name('showtimes.getByDateAndBranch');
-    Route::get('showtimes/{showtime}/seating-arrangement', [ShowtimesController::class, 'getSeatingLayoutByShowtime'])->name('showtimes.getSeatLayoutByShowtime');
+    Route::get('showtimes/branch/{branch}/date/{date}', [ShowtimesController::class, 'getShowtimesByDateAndCinemaBranch'])->name('apiShowtimes.getByDateAndBranch');
+    Route::get('showtimes/{filmCode}', [ShowtimesController::class, 'getShowtimesByFilm'])->name('apiShowtimes.getShowtimesByFilm');
+    Route::get('showtimes/{showtime}/seating-arrangement', [ShowtimesController::class, 'getSeatingLayoutByShowtime'])->name('apiShowtimes.getSeatLayoutByShowtime');
 
     Route::get('/auditoria/{auditorium}', [AuditoriumController::class, 'getSeatTypes'])->name('apiAuditoria.getSeatTypes');
 
