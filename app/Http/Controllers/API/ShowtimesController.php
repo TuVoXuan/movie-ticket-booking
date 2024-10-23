@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Enums\SeatType;
 use App\Http\Controllers\Controller;
 use App\Models\Auditorium;
+use App\Models\CinemaCompany;
 use App\Models\Film;
 use App\Models\Screening;
 use App\Models\SeatingArrangement;
@@ -139,72 +140,121 @@ class ShowtimesController extends BaseController
 
             $startDate = Carbon::now();
             $endDate = Carbon::now()->addDays(7);
-            $showtimes = Screening::with('auditorium.cinemaBranch.cinemaCompany.logo')->whereHas('film', function ($query) use ($filmCode) {
+            $showtimes = Screening::with('auditorium.cinemaBranch')->whereHas('film', function ($query) use ($filmCode) {
                 $query->where('code', '=', $filmCode);
             })
                 ->whereBetween('screening_time', [$startDate, $endDate])
                 ->get();
 
-            $convertedData = [];
+            $convertData = [];
 
             foreach ($showtimes as $item) {
-                // Ensure the necessary relationships are loaded
-                if (
-                    $item->auditorium &&
-                    $item->auditorium->cinemaBranch &&
-                    $item->auditorium->cinemaBranch->cinemaCompany
-                ) {
-                    $cinemaCompanyId = $item->auditorium->cinemaBranch->cinemaCompany->id;
-                    $cinemaBranchId = $item->auditorium->cinemaBranch->id;
-                    $filmTranslation = $item->film_translation; // Assuming this is a property of the Screening model
+                $cinemaCompanyId = $item->auditorium->cinemaBranch->cinema_company_id;
+                $branch = $item->auditorium->cinemaBranch;
 
-                    // Find or create the cinema company
-                    if (!isset($convertedData[$cinemaCompanyId])) {
-                        $convertedData[$cinemaCompanyId] = [
-                            'id' => $cinemaCompanyId,
-                            'name' => $item->auditorium->cinemaBranch->cinemaCompany->name,
-                            'logo' => $item->auditorium->cinemaBranch->cinemaCompany->logo,
-                            'code' => $item->auditorium->cinemaBranch->cinemaCompany->code,
-                            'cinemaBranches' => [], // Initialize as an array
+                if (!isset($convertData[$cinemaCompanyId])) {
+                    $cinemaCompany = CinemaCompany::with('logo')->select(['id', 'name', 'logo'])->find($cinemaCompanyId)->toArray();
+                    if ($cinemaCompany) {
+                        $convertData[$cinemaCompanyId] = [
+                            'company' => $cinemaCompany,
+                            'branches' => []
                         ];
                     }
+                }
 
-                    // Find or create the cinema branch
-                    $branchData = [
-                        'id' => $cinemaBranchId,
-                        'name' => $item->auditorium->cinemaBranch->name,
-                        'address' => $item->auditorium->cinemaBranch->address ?? '',
-                        'region_id' => $item->auditorium->cinemaBranch->region_id ?? 0,
-                        'cinema_company_id' => $cinemaCompanyId,
-                        'code' => $item->auditorium->cinemaBranch->code,
-                        'translation' => [
+                if (!isset($convertData[$cinemaCompanyId]['branches'][$branch->id])) {
+                    $convertData[$cinemaCompanyId]['branches'][$branch->id] = [
+                        'id' => $branch->id,
+                        'name' => $branch->name,
+                        'address' => $branch->address,
+                        'region_id' => $branch->region_id,
+                        'code' => $branch->code,
+                        'showtimes' => [
                             'vietsub' => [],
-                            'voiceover' => [],
-                        ],
+                            'voiceover' => []
+                        ]
                     ];
+                }
 
-                    // Add the branch to the cinema company
-                    $convertedData[$cinemaCompanyId]['cinemaBranches'][] = $branchData; // Append to array
-
-                    // Add the showtime to the appropriate translation array
-                    $lastBranchIndex = count($convertedData[$cinemaCompanyId]['cinemaBranches']) - 1;
-                    $convertedData[$cinemaCompanyId]['cinemaBranches'][$lastBranchIndex]['translation'][$filmTranslation][] = [
-                        'id' => $item->id,
-                        'film_id' => $item->film_id,
-                        'auditorium_id' => $item->auditorium_id,
-                        'screening_time' => $item->screening_time,
-                        'film_translation' => $item->film_translation,
-                    ];
-                } else {
-                    // Handle the case where the expected structure is not met
-                    // Log::warning('Missing keys in item', ['item' => $item]);
+                $filmTranslation = $item->film_translation;
+                if ($filmTranslation === 'vietsub') {
+                    if (!isset($convertData[$cinemaCompanyId]['branches'][$branch->id]['showtimes']['vietsub'][$item->id])) {
+                        $convertData[$cinemaCompanyId]['branches'][$branch->id]['showtimes']['vietsub'][$item->id] = [
+                            'id' => $item->id,
+                            'screening_time' => $item->screening_time,
+                        ];
+                    }
+                }
+                if ($filmTranslation === 'voiceover') {
+                    if (!isset($convertData[$cinemaCompanyId]['branches'][$branch->id]['showtimes']['voiceover'][$item->id])) {
+                        $convertData[$cinemaCompanyId]['branches'][$branch->id]['showtimes']['voiceover'][$item->id] = [
+                            'id' => $item->id,
+                            'screening_time' => $item->screening_time,
+                        ];
+                    }
                 }
             }
 
-            // Reset the keys to get a sequential array
-            $convertedData = array_values($convertedData);
+            // $convertedData = [];
 
-            return $this->sendResponse($convertedData, 'Get showtimes by film successfully.');
+            // foreach ($showtimes as $item) {
+            //     // Ensure the necessary relationships are loaded
+            //     if (
+            //         $item->auditorium &&
+            //         $item->auditorium->cinemaBranch &&
+            //         $item->auditorium->cinemaBranch->cinemaCompany
+            //     ) {
+            //         $cinemaCompanyId = $item->auditorium->cinemaBranch->cinemaCompany->id;
+            //         $cinemaBranchId = $item->auditorium->cinemaBranch->id;
+            //         $filmTranslation = $item->film_translation; // Assuming this is a property of the Screening model
+
+            //         // Find or create the cinema company
+            //         if (!isset($convertedData[$cinemaCompanyId])) {
+            //             $convertedData[$cinemaCompanyId] = [
+            //                 'id' => $cinemaCompanyId,
+            //                 'name' => $item->auditorium->cinemaBranch->cinemaCompany->name,
+            //                 'logo' => $item->auditorium->cinemaBranch->cinemaCompany->logo,
+            //                 'code' => $item->auditorium->cinemaBranch->cinemaCompany->code,
+            //                 'cinemaBranches' => [], // Initialize as an array
+            //             ];
+            //         }
+
+            //         // Find or create the cinema branch
+            //         $branchData = [
+            //             'id' => $cinemaBranchId,
+            //             'name' => $item->auditorium->cinemaBranch->name,
+            //             'address' => $item->auditorium->cinemaBranch->address ?? '',
+            //             'region_id' => $item->auditorium->cinemaBranch->region_id ?? 0,
+            //             'cinema_company_id' => $cinemaCompanyId,
+            //             'code' => $item->auditorium->cinemaBranch->code,
+            //             'translation' => [
+            //                 'vietsub' => [],
+            //                 'voiceover' => [],
+            //             ],
+            //         ];
+
+            //         // Add the branch to the cinema company
+            //         $convertedData[$cinemaCompanyId]['cinemaBranches'][] = $branchData; // Append to array
+
+            //         // Add the showtime to the appropriate translation array
+            //         $lastBranchIndex = count($convertedData[$cinemaCompanyId]['cinemaBranches']) - 1;
+            //         $convertedData[$cinemaCompanyId]['cinemaBranches'][$lastBranchIndex]['translation'][$filmTranslation][] = [
+            //             'id' => $item->id,
+            //             'film_id' => $item->film_id,
+            //             'auditorium_id' => $item->auditorium_id,
+            //             'screening_time' => $item->screening_time,
+            //             'film_translation' => $item->film_translation,
+            //         ];
+            //     } else {
+            //         // Handle the case where the expected structure is not met
+            //         // Log::warning('Missing keys in item', ['item' => $item]);
+            //     }
+            // }
+
+            // Reset the keys to get a sequential array
+            // $convertedData = array_values($convertedData);
+
+            return $this->sendResponse($convertData, 'Get showtimes by film successfully.');
         } catch (\Exception $e) {
             Log::error($e);
             return $this->sendError('An error occurred during get showtimes by film.', [], Response::HTTP_BAD_REQUEST);
