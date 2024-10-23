@@ -134,13 +134,15 @@ class ShowtimesController extends BaseController
     {
         try {
             $provinceCode = $request->query('province');
+            $date = $request->query('date');
             $film = Film::where('code', '=', $filmCode)->first();
             if (!$film) {
                 return $this->sendError('Film not found', [], Response::HTTP_NOT_FOUND);
             }
 
-            $startDate = Carbon::now();
-            $endDate = Carbon::now()->addDays(7);
+            $dateTime = new DateTime($date);
+            $startDate = $dateTime->setTime(0, 0, 0)->format('Y-m-d H:i:s');
+            $endDate = $dateTime->setTime(23, 59, 59)->format('Y-m-d H:i:s');
             $showtimes = Screening::with('auditorium.cinemaBranch')->whereHas('film', function ($query) use ($filmCode) {
                 $query->where('code', '=', $filmCode);
             })
@@ -158,7 +160,9 @@ class ShowtimesController extends BaseController
 
                 // Check if the cinema company already exists in the array
                 if (!isset($convertData[$cinemaCompanyId])) {
-                    $cinemaCompany = CinemaCompany::with('logo')->select(['id', 'name', 'logo'])->find($cinemaCompanyId)->toArray();
+                    $cinemaCompany = CinemaCompany::with(['logo' => function ($query) {
+                        $query->select('id', 'url');
+                    }])->select(['id', 'name', 'logo'])->find($cinemaCompanyId)->toArray();
                     if ($cinemaCompany) {
                         $convertData[$cinemaCompanyId] = [
                             'company' => $cinemaCompany,
