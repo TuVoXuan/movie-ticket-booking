@@ -37,6 +37,7 @@ Route::prefix('v1')->group(function () {
     Route::get('cinemas/branches/region/{region}', [CinemaController::class, 'getAllCinemaBranchByRegion'])->name('apiCinemas.branches.regions.getAll');
 
     Route::get('films/options', [FilmController::class, 'getListOptionsFilm'])->name('apiFilms.options');
+    Route::get('films/showing', [FilmController::class, 'getFilmsShowing'])->name('apiFilms.filmsShowing');
     Route::get('films/{idOrCode}', [FilmController::class, 'getFilmDetails'])->name('apiFilms.show');
 
     Route::get('showtimes/branch/{branch}/date/{date}', [ShowtimesController::class, 'getShowtimesByDateAndCinemaBranch'])->name('apiShowtimes.getByDateAndBranch');
