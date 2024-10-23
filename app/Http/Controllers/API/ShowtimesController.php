@@ -133,6 +133,7 @@ class ShowtimesController extends BaseController
     public function getShowtimesByFilm(Request $request, string $filmCode)
     {
         try {
+            $provinceCode = $request->query('province');
             $film = Film::where('code', '=', $filmCode)->first();
             if (!$film) {
                 return $this->sendError('Film not found', [], Response::HTTP_NOT_FOUND);
@@ -144,6 +145,9 @@ class ShowtimesController extends BaseController
                 $query->where('code', '=', $filmCode);
             })
                 ->whereBetween('screening_time', [$startDate, $endDate])
+                ->whereHas('auditorium.cinemaBranch.region', function ($query) use ($provinceCode) {
+                    $query->where('code', '=', $provinceCode);
+                })
                 ->get();
 
             $convertData = [];
