@@ -8,6 +8,7 @@ use App\Http\Controllers\API\GenreController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\RegionController;
 use App\Http\Controllers\API\ShowtimesController;
+use App\Http\Controllers\API\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,16 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
+    Route::post('sign-up', [UserController::class, 'signUp'])->name('apiUsers.signUp');
+    Route::post('sign-in', [UserController::class, 'signIn'])->name('apiUsers.signIn');
+
+    Route::group([
+        'middleware' => 'auth:api'
+    ], function () {
+        Route::get('users/{user}', [UserController::class, 'getInfo'])->name('apiUsers.getInfo');
+    });
+
+
     Route::get('artists', [ArtistController::class, 'getList'])->name('apiArtists.index');
 
     Route::get('genres', [GenreController::class, 'getAll'])->name('apiGenres.index');
@@ -38,6 +49,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('films/options', [FilmController::class, 'getListOptionsFilm'])->name('apiFilms.options');
     Route::get('films/showing', [FilmController::class, 'getFilmsShowing'])->name('apiFilms.filmsShowing');
+    Route::get('films/showing/{month}/{year}', [FilmController::class, 'getFilmByMonthOfYear'])->name('apiFilms.getFilmByMonthOfYear');
     Route::get('films/{idOrCode}', [FilmController::class, 'getFilmDetails'])->name('apiFilms.show');
 
     Route::get('showtimes/branch/{branch}/date/{date}', [ShowtimesController::class, 'getShowtimesByDateAndCinemaBranch'])->name('apiShowtimes.getByDateAndBranch');

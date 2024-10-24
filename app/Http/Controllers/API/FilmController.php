@@ -66,4 +66,31 @@ class FilmController extends BaseController
             return  $this->sendError('An error occurred during get films showing.', [], Response::HTTP_BAD_REQUEST);
         }
     }
+
+    public function getFilmByMonthOfYear(Request $request, int $month, int $year)
+    {
+        try {
+            if ($month < 1 || $month > 12 || $year < 1) {
+                return $this->sendError('Invalid month or year.', [], Response::HTTP_BAD_REQUEST);
+            }
+
+            // Create the first date of the month
+            $startDate = (new DateTime("$year-$month-01"))->setTime(0, 0, 0)->format('Y-m-d H:i:s');
+
+            // Create the last date of the month
+            $endDate = (new DateTime("$year-$month-01"))->modify('last day of this month')->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+
+            $films = Film::whereBetween('release_date', [$startDate, $endDate])
+                ->with(['thumbnail' => function ($query) {
+                    $query->select('id', 'url');
+                }])
+                ->select('id', 'release_date', 'thumbnail', 'title', 'code')
+                ->get();
+
+            return $this->sendResponse($films, 'Get list films showing successfully.');
+        } catch (\Exception $e) {
+            Log::error($e);
+            return  $this->sendError('An error occurred during get films showing by month of year.', [], Response::HTTP_BAD_REQUEST);
+        }
+    }
 }
